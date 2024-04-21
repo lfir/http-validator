@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +38,9 @@ public class ValidationService {
     public ValidationService() {
         try {
             this.xmlParser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            this.client = HttpClient.newHttpClient();
+            this.client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.ALWAYS).build();
         } catch (ParserConfigurationException e) {
             logger.error("XML parser {} could not be initialized.", DocumentBuilder.class.getSimpleName());
             throw new RuntimeException(e);
@@ -96,11 +99,11 @@ public class ValidationService {
         return this.tasks;
     }
 
-    public void setXmlParser(DocumentBuilder xmlParser) {
+    protected void setXmlParser(DocumentBuilder xmlParser) {
         this.xmlParser = xmlParser;
     }
 
-    public void setClient(HttpClient client) {
+    protected void setClient(HttpClient client) {
         this.client = client;
     }
 }
