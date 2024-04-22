@@ -59,9 +59,11 @@ public class ValidationServiceTests {
 
         Node attributesNode = mock(Node.class);
         given(attributesNode.getTextContent()).willReturn("0");
+        Node headersNode = mock(Node.class);
+        given(headersNode.getTextContent()).willReturn("");
         given(nm.getNamedItem("reqmethod")).willReturn(attributesNode);
         given(nm.getNamedItem("requrl")).willReturn(attributesNode);
-        given(nm.getNamedItem("reqbody")).willReturn(attributesNode);
+        given(nm.getNamedItem("reqheaders")).willReturn(headersNode);
         given(nm.getNamedItem("ressc")).willReturn(attributesNode);
         given(nm.getNamedItem("resbody")).willReturn(attributesNode);
 
@@ -71,7 +73,7 @@ public class ValidationServiceTests {
 
         assertEquals(Integer.parseInt(attributesNode.getTextContent()), this.vs.getTasks().get(0).reqMethod());
         assertEquals(attributesNode.getTextContent(), this.vs.getTasks().get(0).reqURL());
-        assertEquals(attributesNode.getTextContent(), this.vs.getTasks().get(0).reqBody());
+        assert this.vs.getTasks().get(0).reqHeaders().isEmpty();
         assertEquals(Integer.parseInt(attributesNode.getTextContent()), this.vs.getTasks().get(0).validStatusCode());
         assertEquals(attributesNode.getTextContent(), this.vs.getTasks().get(0).validBody());
     }
@@ -87,14 +89,16 @@ public class ValidationServiceTests {
 
         Node n0 = mock(Node.class);
         Node n1 = mock(Node.class);
+        Node n2 = mock(Node.class);
         given(nodes.item(anyInt())).willReturn(n0);
         NamedNodeMap nm = mock(NamedNodeMap.class);
         given(n0.getAttributes()).willReturn(nm);
         given(n0.getTextContent()).willReturn("0");
         given(n1.getTextContent()).willReturn("http://localhost");
+        given(n2.getTextContent()).willReturn("X-H1:B32C,H2:456");
         given(nm.getNamedItem("reqmethod")).willReturn(n0);
         given(nm.getNamedItem("requrl")).willReturn(n1);
-        given(nm.getNamedItem("reqbody")).willReturn(n0);
+        given(nm.getNamedItem("reqheaders")).willReturn(n2);
         given(nm.getNamedItem("ressc")).willReturn(n0);
         given(nm.getNamedItem("resbody")).willReturn(n0);
 
@@ -106,6 +110,8 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
+        assertEquals(n2.getTextContent().split(",")[0], this.vs.getTasks().get(0).reqHeaders().get(0));
+        assertEquals(n2.getTextContent().split(",")[1], this.vs.getTasks().get(0).reqHeaders().get(1));
         assertEquals(Integer.parseInt(n0.getTextContent()), this.vs.getTasks().get(0).reqMethod());
         assertEquals(n1.getTextContent(), this.vs.getTasks().get(0).reqURL());
         verify(cl).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));

@@ -22,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -60,7 +61,7 @@ public class ValidationService {
                 ValidationTask v = new ValidationTask(
                     Integer.parseInt(nm.getNamedItem("reqmethod").getTextContent()),
                     nm.getNamedItem("requrl").getTextContent(),
-                    nm.getNamedItem("reqbody").getTextContent(),
+                    Arrays.stream(nm.getNamedItem("reqheaders").getTextContent().split(",")).filter(h -> h != "").toList(),
                     Integer.parseInt(nm.getNamedItem("ressc").getTextContent()),
                     nm.getNamedItem("resbody").getTextContent()
                 );
@@ -76,13 +77,14 @@ public class ValidationService {
         this.readTasksFromDataFile();
 
         for (ValidationTask task : this.tasks) {
-            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(task.reqURL())).GET().build();
-            if (0 != task.reqMethod()) {
-                // TODO: POST case
+            HttpRequest.Builder req = HttpRequest.newBuilder();
+            task.reqHeaders().forEach(h -> req.headers(h.split(":")));
+            if (task.reqMethod() == 0) {
+                req.GET();
             }
 
             try {
-                HttpResponse<String> res = this.client.send(req, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> res = this.client.send(req.uri(URI.create(task.reqURL())).build(), HttpResponse.BodyHandlers.ofString());
                 if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
                     // TODO: send notifications
                     logger.info("VALIDATION FAILURE for: {}", task.reqURL());

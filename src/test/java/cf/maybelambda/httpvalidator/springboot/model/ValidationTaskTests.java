@@ -2,12 +2,14 @@ package cf.maybelambda.httpvalidator.springboot.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValidationTaskTests {
     @Test
     void isValidReturnsTrueWhenExpectedDataMatchesReceivedOneAndFalseOtherwise() {
-        ValidationTask vt = new ValidationTask(0, "http://localhost", "", 200, "test body");
+        ValidationTask vt = new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, "test body");
 
         // Invalid because of different status codes
         assertThat(vt.isValid(400, "test body")).isFalse();
