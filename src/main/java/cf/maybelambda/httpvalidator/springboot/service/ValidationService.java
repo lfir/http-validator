@@ -3,6 +3,7 @@ package cf.maybelambda.httpvalidator.springboot.service;
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,8 @@ public class ValidationService {
     private DocumentBuilder xmlParser;
     private HttpClient client;
     private static final Logger logger = LoggerFactory.getLogger(ValidationService.class);
+    @Autowired
+    private EmailNotificationService notificationService;
 
     public ValidationService() {
         try {
@@ -48,7 +51,7 @@ public class ValidationService {
         }
     }
 
-    protected void readTasksFromDataFile() {
+    void readTasksFromDataFile() {
         this.tasks = new ArrayList<>();
 
         try {
@@ -68,7 +71,8 @@ public class ValidationService {
                 this.tasks.add(v);
             }
         } catch (NullPointerException | IOException | SAXException e) {
-            logger.error("Failed to parse datafile at: {}", DATAFILE_PATH, e);
+            logger.error("Failed to parse datafile at: {}", DATAFILE_PATH);
+            throw new RuntimeException(e);
         }
     }
 
@@ -76,6 +80,7 @@ public class ValidationService {
     public void execValidations() {
         this.readTasksFromDataFile();
 
+        List<String[]> failures = new ArrayList<>();
         for (ValidationTask task : this.tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             task.reqHeaders().forEach(h -> req.headers(h.split(":")));
@@ -86,7 +91,8 @@ public class ValidationService {
             try {
                 HttpResponse<String> res = this.client.send(req.uri(URI.create(task.reqURL())).build(), HttpResponse.BodyHandlers.ofString());
                 if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
-                    // TODO: send notifications
+                    String[] notifData = { task.reqURL(), String.valueOf(res.statusCode()), res.body() };
+                    failures.add(notifData);
                     logger.info("VALIDATION FAILURE for: {}", task.reqURL());
                 } else {
                     logger.info("VALIDATION OK for: {}", task.reqURL());
@@ -95,17 +101,25 @@ public class ValidationService {
                 logger.error("HTTPClient's request for the validation task could not be completed.", e);
             }
         }
+
+        if (failures.size() > 0) {
+            this.notificationService.sendNotification(failures);
+        }
     }
 
-    protected List<ValidationTask> getTasks() {
+    List<ValidationTask> getTasks() {
         return this.tasks;
     }
 
-    protected void setXmlParser(DocumentBuilder xmlParser) {
+    void setXmlParser(DocumentBuilder xmlParser) {
         this.xmlParser = xmlParser;
     }
 
-    protected void setClient(HttpClient client) {
+    void setClient(HttpClient client) {
         this.client = client;
+    }
+
+    void setNotificationService(EmailNotificationService service) {
+        this.notificationService = service;
     }
 }

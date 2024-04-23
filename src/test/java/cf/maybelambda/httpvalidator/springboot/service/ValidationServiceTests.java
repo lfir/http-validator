@@ -79,7 +79,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsSendsRequestViaHTTPClient() throws IOException, InterruptedException, SAXException {
+    void execValidationsSendsRequestAndNotificationViaHTTPAndEmailClients() throws IOException, InterruptedException, SAXException {
         DocumentBuilder db = mock(DocumentBuilder.class);
         Document doc = mock(Document.class);
         given(db.parse(any(File.class))).willReturn(doc);
@@ -104,9 +104,10 @@ public class ValidationServiceTests {
 
         HttpClient cl = mock(HttpClient.class);
         given(cl.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).willReturn(mock(HttpResponse.class));
-
+        EmailNotificationService ns = mock(EmailNotificationService.class);
         this.vs.setClient(cl);
         this.vs.setXmlParser(db);
+        this.vs.setNotificationService(ns);
 
         this.vs.execValidations();
 
@@ -115,5 +116,6 @@ public class ValidationServiceTests {
         assertEquals(Integer.parseInt(n0.getTextContent()), this.vs.getTasks().get(0).reqMethod());
         assertEquals(n1.getTextContent(), this.vs.getTasks().get(0).reqURL());
         verify(cl).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
+        verify(ns).sendNotification(anyList());
     }
 }
