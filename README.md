@@ -8,6 +8,5 @@ Reads validation task information from an XML file that can be updated independe
 Run schedule can also be set through a separate configuration file (restart required).
 
 Next steps:
-- Email notifications
 - Parallel task execution
 - Offer some  basic processing statistics through the web API
