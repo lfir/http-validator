@@ -1,6 +1,7 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,10 +36,25 @@ public class XMLValidationTaskDaoTests {
     @Autowired
     private XMLValidationTaskDao taskDao;
 
-    @Test
-    void xmlWithNoValidationTagsProducesZeroTasks() throws IOException, SAXException {
+    @BeforeEach
+    void setUp() throws IOException, SAXException {
         this.taskDao.setXmlParser(this.xmlParser);
         given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
+
+        given(this.nodes.item(anyInt())).willReturn(this.validationNode);
+        given(validationNode.getAttributes()).willReturn(this.nm);
+
+        given(this.nm.getNamedItem(REQ_METHOD_ATTR)).willReturn(this.nodeA);
+        given(this.nm.getNamedItem(REQ_URL_ATTR)).willReturn(this.nodeA);
+        given(this.nm.getNamedItem(REQ_HEADERS_ATTR)).willReturn(nodeB);
+        given(this.nm.getNamedItem(RES_SC_ATTR)).willReturn(this.nodeA);
+        given(this.nm.getNamedItem(RES_BODY_ATTR)).willReturn(this.nodeB);
+
+        given(this.nodeA.getTextContent()).willReturn("0");
+    }
+
+    @Test
+    void xmlWithNoValidationTagsProducesZeroTasks() {
         given(doc.getElementsByTagName(anyString())).willReturn(this.nodes);
         given(this.nodes.getLength()).willReturn(0);
 
@@ -46,22 +62,11 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() throws IOException, SAXException {
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
-        this.taskDao.setXmlParser(this.xmlParser);
-
+    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
         given(this.nodes.getLength()).willReturn(1);
-        given(this.nodes.item(anyInt())).willReturn(this.validationNode);
-        given(validationNode.getAttributes()).willReturn(this.nm);
 
-        given(this.nodeA.getTextContent()).willReturn("0");
         given(this.nodeB.getTextContent()).willReturn("X-H1:B32C,H2:456");
-        given(this.nm.getNamedItem(REQ_METHOD_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(REQ_URL_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(REQ_HEADERS_ATTR)).willReturn(nodeB);
-        given(this.nm.getNamedItem(RES_SC_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(RES_BODY_ATTR)).willReturn(this.nodeA);
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
@@ -70,26 +75,15 @@ public class XMLValidationTaskDaoTests {
         assertEquals(this.nodeB.getTextContent().split(HEADER_DELIMITER)[0], ans.get(0).reqHeaders().get(0));
         assertEquals(this.nodeB.getTextContent().split(HEADER_DELIMITER)[1], ans.get(0).reqHeaders().get(1));
         assertEquals(Integer.parseInt(this.nodeA.getTextContent()), ans.get(0).validStatusCode());
-        assertEquals(this.nodeA.getTextContent(), ans.get(0).validBody());
+        assertEquals(this.nodeB.getTextContent(), ans.get(0).validBody());
     }
 
     @Test
-    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() throws IOException, SAXException {
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
-        this.taskDao.setXmlParser(this.xmlParser);
-
+    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
         given(this.nodes.getLength()).willReturn(1);
-        given(this.nodes.item(anyInt())).willReturn(this.validationNode);
-        given(this.validationNode.getAttributes()).willReturn(this.nm);
 
-        given(this.nodeA.getTextContent()).willReturn("0");
         given(this.nodeB.getTextContent()).willReturn("");
-        given(this.nm.getNamedItem(REQ_METHOD_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(REQ_URL_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(REQ_HEADERS_ATTR)).willReturn(this.nodeB);
-        given(this.nm.getNamedItem(RES_SC_ATTR)).willReturn(this.nodeA);
-        given(this.nm.getNamedItem(RES_BODY_ATTR)).willReturn(this.nodeB);
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
