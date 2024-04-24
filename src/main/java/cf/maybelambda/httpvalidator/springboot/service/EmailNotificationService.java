@@ -37,7 +37,7 @@ public class EmailNotificationService {
         for (String[] c : contents) {
             String p0 = BODY_LINE1 + c[0] + "\n";
             String p1 = BODY_LINE2 + c[1] + "\n";
-            String p2 = BODY_LINE3 + (c[2]== null ? "" : StringUtils.truncate(c[2], 800, "..."));
+            String p2 = BODY_LINE3 + (c[2] == null ? "" : StringUtils.truncate(c[2], 800, "..."));
             res += p0 + p1 + p2 + "\n\n\n";
         }
 
@@ -65,7 +65,5 @@ public class EmailNotificationService {
         }
     }
 
-    void setClient(SendGrid sg) {
-        this.client = sg;
-    }
+    void setClient(SendGrid sg) { this.client = sg; }
 }
