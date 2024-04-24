@@ -2,6 +2,7 @@ package cf.maybelambda.httpvalidator.springboot.service;
 
 import com.sendgrid.Method;
 import com.sendgrid.Request;
+import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
@@ -21,16 +22,14 @@ public class EmailNotificationService {
     static final String BODY_LINE2 = "Response Status Code: ";
     static final String BODY_LINE3 = "Response body: ";
     private SendGrid client;
-    @Value("${sendgrid.apikey}")
-    private String API_KEY;
     @Value("${notifications.from}")
     private String FROM;
     @Value("${notifications.to}")
     private String TO;
     private static final Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
 
-    public EmailNotificationService() {
-        this.client = new SendGrid(API_KEY);
+    public EmailNotificationService(@Value("${sendgrid.apikey}") String apikey) {
+        this.client = new SendGrid(apikey);
     }
 
     String buildMailBody(List<String[]> contents) {
@@ -45,7 +44,7 @@ public class EmailNotificationService {
         return res;
     }
 
-    public void sendNotification(List<String[]> mailBody) {
+    public void sendVTaskErrorsNotification(List<String[]> mailBody) {
         Email from = new Email(FROM);
         from.setName("Chronos Maybelambda");
         String subject = "Notification of HTTP validation results";
@@ -58,7 +57,8 @@ public class EmailNotificationService {
         request.setEndpoint("mail/send");
         try {
             request.setBody(mail.build());
-            this.client.api(request);
+            Response res = this.client.api(request);
+            logger.info("Email delivery result: Status Code: {}", res.getStatusCode() + " - Body: " + res.getBody());
         } catch (IOException e) {
             logger.error("Notification email delivery POST request could not be completed: {}", request);
             throw new RuntimeException(e);

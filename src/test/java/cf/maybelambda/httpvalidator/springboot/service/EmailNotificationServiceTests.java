@@ -1,6 +1,7 @@
 package cf.maybelambda.httpvalidator.springboot.service;
 
 import com.sendgrid.Request;
+import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationS
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -58,12 +60,17 @@ public class EmailNotificationServiceTests {
     @Test
     void notificationServiceSendsEmailViaSendgridClient() throws IOException {
         SendGrid sg = mock(SendGrid.class);
+        Response res = mock(Response.class);
+        given(res.getStatusCode()).willReturn(200);
+        given(res.getBody()).willReturn("");
+        given(sg.api(any(Request.class))).willReturn(res);
         this.service.setClient(sg);
-        String[] ss = { "", "", "" };
-        List<String[]> res = new ArrayList<>();
-        res.add(ss);
 
-        this.service.sendNotification(res);
+        String[] ss = { "", "", "" };
+        List<String[]> strs = new ArrayList<>();
+        strs.add(ss);
+
+        this.service.sendVTaskErrorsNotification(strs);
 
         verify(sg).api(any(Request.class));
     }

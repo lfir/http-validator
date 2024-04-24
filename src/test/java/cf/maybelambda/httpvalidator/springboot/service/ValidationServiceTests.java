@@ -116,6 +116,6 @@ public class ValidationServiceTests {
         assertEquals(Integer.parseInt(n0.getTextContent()), this.vs.getTasks().get(0).reqMethod());
         assertEquals(n1.getTextContent(), this.vs.getTasks().get(0).reqURL());
         verify(cl).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
-        verify(ns).sendNotification(anyList());
+        verify(ns).sendVTaskErrorsNotification(anyList());
     }
 }

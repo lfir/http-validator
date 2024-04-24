@@ -103,7 +103,7 @@ public class ValidationService {
         }
 
         if (failures.size() > 0) {
-            this.notificationService.sendNotification(failures);
+            this.notificationService.sendVTaskErrorsNotification(failures);
         }
     }
 
