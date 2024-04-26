@@ -23,7 +23,7 @@ import static java.util.Objects.isNull;
 public class ValidationService {
     static final String HEADER_KEY_VALUE_DELIMITER = ":";
     private HttpClient client;
-    private static final Logger logger = LoggerFactory.getLogger(ValidationService.class);
+    private static Logger logger = LoggerFactory.getLogger(ValidationService.class);
     @Autowired
     private EmailNotificationService notificationService;
     @Autowired
@@ -41,9 +41,7 @@ public class ValidationService {
         for (ValidationTask task : this.taskReader.getAll()) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             task.reqHeaders().forEach(h -> req.headers(h.split(HEADER_KEY_VALUE_DELIMITER)));
-            if (task.reqMethod() == 0) {
-                req.GET();
-            }
+            req.GET();
 
             try {
                 HttpResponse<String> res = this.client.send(req.uri(URI.create(task.reqURL())).build(), HttpResponse.BodyHandlers.ofString());
@@ -69,4 +67,6 @@ public class ValidationService {
     void setNotificationService(EmailNotificationService service) { this.notificationService = service; }
 
     void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }
+
+    void setLogger(Logger logger) { this.logger = logger; }
 }
