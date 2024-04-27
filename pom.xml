@@ -77,11 +77,6 @@
 						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<excludes>
-						<exclude>cf/maybelambda/httpvalidator/springboot/HTTPValidatorWebApp.class</exclude>
-					</excludes>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
