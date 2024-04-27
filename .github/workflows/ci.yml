@@ -13,6 +13,9 @@ on:
 
 env:
   CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  SENDGRID_APIKEY: ''
+  NOTIF_FROM: ''
+  NOTIF_TO: ''
 
 jobs:
   build:
