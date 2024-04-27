@@ -45,13 +45,15 @@ public class ValidationService {
 
             try {
                 HttpResponse<String> res = this.client.send(req.uri(URI.create(task.reqURL())).build(), HttpResponse.BodyHandlers.ofString());
+                String logmsg = "VALIDATION ";
                 if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
                     String[] notifData = { task.reqURL(), String.valueOf(res.statusCode()), res.body() };
                     failures.add(notifData);
-                    logger.info("VALIDATION FAILURE for: {}", task.reqURL());
+                    logmsg += "FAILURE";
                 } else {
-                    logger.info("VALIDATION OK for: {}", task.reqURL());
+                    logmsg += "OK";
                 }
+                logger.info(logmsg + " for: {}", task.reqURL());
             } catch (IOException | InterruptedException e) {
                 logger.error("HTTPClient's request for the validation task could not be completed.", e);
             }
@@ -68,5 +70,5 @@ public class ValidationService {
 
     void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }
 
-    void setLogger(Logger logger) { this.logger = logger; }
+    void setLogger(Logger logger) { ValidationService.logger = logger; }
 }
