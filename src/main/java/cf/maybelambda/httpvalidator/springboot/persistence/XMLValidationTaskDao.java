@@ -31,15 +31,10 @@ public class XMLValidationTaskDao {
     @Value("${datafile}")
     private String DATAFILE_PATH;
     private DocumentBuilder xmlParser;
-    private static final Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
+    private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
 
-    public XMLValidationTaskDao() {
-        try {
-            this.xmlParser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            logger.error("XML parser {} could not be initialized.", DocumentBuilder.class.getSimpleName());
-            throw new RuntimeException(e);
-        }
+    public XMLValidationTaskDao() throws ParserConfigurationException {
+        this.xmlParser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
     public List<ValidationTask> getAll() {
@@ -68,4 +63,6 @@ public class XMLValidationTaskDao {
     }
 
     void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }
+
+    void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }
 }

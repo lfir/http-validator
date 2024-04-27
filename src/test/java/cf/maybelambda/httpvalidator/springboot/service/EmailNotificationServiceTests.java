@@ -4,18 +4,23 @@ import com.sendgrid.Request;
 import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE1;
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE2;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -23,13 +28,14 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 @ActiveProfiles("test")
 public class EmailNotificationServiceTests {
+    private final SendGrid sg = mock(SendGrid.class);
     @Autowired
     EmailNotificationService service;
 
     @Test
     void buildMailBodyPreservesReceivedURLsAndStatusCodesInOutput() {
         String[] ss0 = { "http://localhost", "200", "tst", "https://site.com", "400", "" };
-        String[] ss1 = { "https://site.com", "400", "" };
+        String[] ss1 = { "https://site.com", "400", null };
         List<String[]> res = new ArrayList<>();
         res.add(ss0);
         res.add(ss1);
@@ -59,12 +65,11 @@ public class EmailNotificationServiceTests {
 
     @Test
     void notificationServiceSendsEmailViaSendgridClient() throws IOException {
-        SendGrid sg = mock(SendGrid.class);
         Response res = mock(Response.class);
         given(res.getStatusCode()).willReturn(200);
         given(res.getBody()).willReturn("");
-        given(sg.api(any(Request.class))).willReturn(res);
-        this.service.setClient(sg);
+        given(this.sg.api(any(Request.class))).willReturn(res);
+        this.service.setClient(this.sg);
 
         String[] ss = { "", "", "" };
         List<String[]> strs = new ArrayList<>();
@@ -72,6 +77,19 @@ public class EmailNotificationServiceTests {
 
         this.service.sendVTaskErrorsNotification(strs);
 
+        assertThat(this.service.buildMailBody(strs)).isNotNull();
         verify(sg).api(any(Request.class));
+    }
+
+    @Test
+    void whenSendVTaskErrorsNotificationFailsToSendEmailErrorIsLogged() throws IOException {
+        given(this.sg.api(any(Request.class))).willThrow(IOException.class);
+        this.service.setClient(this.sg);
+
+        Logger logger = mock(Logger.class);
+        this.service.setLogger(logger);
+
+        assertThrows(RuntimeException.class, () -> this.service.sendVTaskErrorsNotification(Collections.emptyList()));
+        verify(logger).error(anyString(), any(Request.class));
     }
 }

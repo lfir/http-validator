@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 @ActiveProfiles("test")
 public class ValidationServiceTests {
-    public static final HttpResponse<String> r = mock(HttpResponse.class);
+    private final HttpResponse<String> r = mock(HttpResponse.class);
     private final EmailNotificationService ns = mock(EmailNotificationService.class);
     private final HttpClient cl = mock(HttpClient.class);
     private final XMLValidationTaskDao dao = mock(XMLValidationTaskDao.class);

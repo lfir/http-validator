@@ -3,6 +3,7 @@ package cf.maybelambda.httpvalidator.springboot.persistence;
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,9 +20,11 @@ import java.util.List;
 
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -37,9 +40,8 @@ public class XMLValidationTaskDaoTests {
     private XMLValidationTaskDao taskDao;
 
     @BeforeEach
-    void setUp() throws IOException, SAXException {
+    void setUp() {
         this.taskDao.setXmlParser(this.xmlParser);
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
 
         given(this.nodes.item(anyInt())).willReturn(this.validationNode);
         given(validationNode.getAttributes()).willReturn(this.nm);
@@ -54,16 +56,18 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void xmlWithNoValidationTagsProducesZeroTasks() {
+    void xmlWithNoValidationTagsProducesZeroTasks() throws IOException, SAXException {
         given(doc.getElementsByTagName(anyString())).willReturn(this.nodes);
+        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(0);
 
         assert this.taskDao.getAll().isEmpty();
     }
 
     @Test
-    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() {
+    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() throws IOException, SAXException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
+        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
 
         given(this.nodeB.getTextContent()).willReturn("X-H1:B32C,H2:456");
@@ -79,8 +83,9 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() {
+    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() throws IOException, SAXException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
+        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
 
         given(this.nodeB.getTextContent()).willReturn("");
@@ -89,5 +94,15 @@ public class XMLValidationTaskDaoTests {
 
         assert ans.get(0).reqHeaders().isEmpty();
         assertEquals("", ans.get(0).validBody());
+    }
+
+    @Test
+    void whenGetAllThrowsSAXExceptionThenErrorIsLogged() throws IOException, SAXException {
+        given(this.xmlParser.parse(any(File.class))).willThrow(SAXException.class);
+        Logger logger = mock(Logger.class);
+        this.taskDao.setLogger(logger);
+
+        assertThrows(RuntimeException.class, () -> this.taskDao.getAll());
+        verify(logger).error(anyString(), anyString());
     }
 }

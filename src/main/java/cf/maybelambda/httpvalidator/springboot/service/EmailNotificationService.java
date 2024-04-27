@@ -26,7 +26,7 @@ public class EmailNotificationService {
     private String FROM;
     @Value("${notifications.to}")
     private String TO;
-    private static final Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
+    private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
 
     public EmailNotificationService(@Value("${sendgrid.apikey}") String apikey) {
         this.client = new SendGrid(apikey);
@@ -66,4 +66,6 @@ public class EmailNotificationService {
     }
 
     void setClient(SendGrid sg) { this.client = sg; }
+
+    void setLogger(Logger logger) { EmailNotificationService.logger = logger; }
 }
