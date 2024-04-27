@@ -11,6 +11,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,3 +27,5 @@ jobs:
           distribution: 'corretto'
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
+      - name: Upload coverage report to Codacy
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r target/site/jacoco/jacoco.xml
