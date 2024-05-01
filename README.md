@@ -15,3 +15,4 @@ Run schedule can also be set through a separate configuration file (restart requ
 Next steps:
 - Parallel task execution
 - Offer some  basic processing statistics and update the XML with the tasks through the web API
+- XML Schema
