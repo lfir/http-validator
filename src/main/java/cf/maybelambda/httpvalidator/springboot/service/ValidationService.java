@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,6 +15,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.Objects.isNull;
 
@@ -37,28 +38,53 @@ public class ValidationService {
 
     @Scheduled(cron = "${cron.expression}")
     public void execValidations() {
-        List<String[]> failures = new ArrayList<>();
-        for (ValidationTask task : this.taskReader.getAll()) {
+        List<HttpRequest> reqs = new ArrayList<>();
+        List<ValidationTask> tasks = this.taskReader.getAll();
+        for (ValidationTask task : tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
+            req.uri(URI.create(task.reqURL()));
             task.reqHeaders().forEach(h -> req.headers(h.split(HEADER_KEY_VALUE_DELIMITER)));
             req.GET();
+            reqs.add(req.build());
+        }
 
+        List<HttpResponse<String>> resps = new ArrayList<>();
+        List<CompletableFuture<HttpResponse<String>>> completableFutures = reqs.stream()
+            .map(request -> client.sendAsync(request, HttpResponse.BodyHandlers.ofString()))
+            .toList();
+        CompletableFuture<List<HttpResponse<String>>> combinedFutures = CompletableFuture
+            .allOf(completableFutures.toArray(new CompletableFuture[0]))
+            .thenApply(future -> completableFutures.stream()
+                .map(CompletableFuture::join)
+                .toList()
+            );
+        try {
+            resps = combinedFutures.get();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("HTTPClient's request for the validation task could not be completed.", e);
+        }
+
+        List<String[]> failures = new ArrayList<>();
+        for (HttpResponse<String> res : resps) {
             try {
-                HttpResponse<String> res = this.client.send(req.uri(URI.create(task.reqURL())).build(), HttpResponse.BodyHandlers.ofString());
+                ValidationTask task = tasks.stream()
+                    .filter(t -> res.request().uri().compareTo(URI.create(t.reqURL())) == 0)
+                    .toList()
+                    .get(0);
                 String logmsg = "VALIDATION ";
                 if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
-                    String[] notifData = { task.reqURL(), String.valueOf(res.statusCode()), res.body() };
+                    String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
                     failures.add(notifData);
                     logmsg += "FAILURE";
                 } else {
                     logmsg += "OK";
                 }
                 logger.info(logmsg + " for: {}", task.reqURL());
-            } catch (IOException | InterruptedException e) {
-                logger.error("HTTPClient's request for the validation task could not be completed.", e);
+            } catch (IndexOutOfBoundsException e) {
+                logger.error("Could not find a ValidationTask for Response with request URL: {}", res.request().uri());
+                throw e;
             }
         }
-
         if (failures.size() > 0) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
