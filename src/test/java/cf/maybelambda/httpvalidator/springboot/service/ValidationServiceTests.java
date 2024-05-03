@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -112,18 +111,5 @@ public class ValidationServiceTests {
 
         assertThat(this.dao.getAll()).isNotEmpty();
         verify(this.logger).info(anyString(), anyString());
-    }
-
-    @Test
-    void exceptionWhenResponseAppearsWithRequestUrlNotMatchingAnyValidationTaskRequestUrl() {
-        given(this.res.body()).willReturn("");
-        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .willReturn(CompletableFuture.completedFuture(this.res));
-
-        this.tasks.add(new ValidationTask(0, "http://127.0.0.1", Collections.emptyList(), 200, ""));
-        given(this.dao.getAll()).willReturn(this.tasks);
-
-        assertThrows(IndexOutOfBoundsException.class, () -> this.vs.execValidations());
-        verify(logger).error(anyString(), any(URI.class));
     }
 }

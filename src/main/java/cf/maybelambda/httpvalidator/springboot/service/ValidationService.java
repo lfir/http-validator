@@ -14,9 +14,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static java.util.Objects.isNull;
 
@@ -48,42 +49,33 @@ public class ValidationService {
             reqs.add(req.build());
         }
 
-        List<HttpResponse<String>> resps = new ArrayList<>();
+        Map<Integer, HttpResponse<String>> resps = new HashMap<>();
         List<CompletableFuture<HttpResponse<String>>> completableFutures = reqs.stream()
             .map(request -> client.sendAsync(request, HttpResponse.BodyHandlers.ofString()))
             .toList();
-        CompletableFuture<List<HttpResponse<String>>> combinedFutures = CompletableFuture
-            .allOf(completableFutures.toArray(new CompletableFuture[0]))
-            .thenApply(future -> completableFutures.stream()
-                .map(CompletableFuture::join)
-                .toList()
-            );
-        try {
-            resps = combinedFutures.get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("HTTPClient's request for the validation task could not be completed.", e);
-        }
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
+        allFutures.thenRun(() -> {
+            for (int i = 0; i < completableFutures.size(); i++) {
+                resps.put(i, completableFutures.get(i).join());
+            }
+        }).exceptionally(ex -> {
+            logger.error("HTTPClient's request for the validation task could not be completed.", ex);
+            return null;
+        }).join();
 
         List<String[]> failures = new ArrayList<>();
-        for (HttpResponse<String> res : resps) {
-            try {
-                ValidationTask task = tasks.stream()
-                    .filter(t -> res.request().uri().compareTo(URI.create(t.reqURL())) == 0)
-                    .toList()
-                    .get(0);
-                String logmsg = "VALIDATION ";
-                if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
-                    String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
-                    failures.add(notifData);
-                    logmsg += "FAILURE";
-                } else {
-                    logmsg += "OK";
-                }
-                logger.info(logmsg + " for: {}", task.reqURL());
-            } catch (IndexOutOfBoundsException e) {
-                logger.error("Could not find a ValidationTask for Response with request URL: {}", res.request().uri());
-                throw e;
+        for (Map.Entry<Integer, HttpResponse<String>> resen : resps.entrySet()) {
+            ValidationTask task = tasks.get(resen.getKey());
+            String logmsg = "VALIDATION ";
+            HttpResponse<String> res = resen.getValue();
+            if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
+                String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
+                failures.add(notifData);
+                logmsg += "FAILURE";
+            } else {
+                logmsg += "OK";
             }
+            logger.info(logmsg + " for: {}", task.reqURL());
         }
         if (failures.size() > 0) {
             this.notificationService.sendVTaskErrorsNotification(failures);
