@@ -9,13 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,12 +28,13 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 @ActiveProfiles("test")
 public class ValidationServiceTests {
-    private final HttpResponse<String> r = mock(HttpResponse.class);
+    private final HttpResponse<String> res = mock(HttpResponse.class);
     private final EmailNotificationService ns = mock(EmailNotificationService.class);
     private final HttpClient cl = mock(HttpClient.class);
     private final XMLValidationTaskDao dao = mock(XMLValidationTaskDao.class);
     private final Logger logger = mock(Logger.class);
     private final List<ValidationTask> tasks = new ArrayList<>();
+    private final HttpRequest req = mock(HttpRequest.class);
     @Autowired
     private ValidationService vs;
 
@@ -43,30 +45,37 @@ public class ValidationServiceTests {
         this.vs.setTaskReader(this.dao);
         this.vs.setLogger(this.logger);
         this.tasks.clear();
+
+        given(this.req.uri()).willReturn(URI.create("http://localhost"));
+        given(this.res.request()).willReturn(this.req);
+        given(this.res.statusCode()).willReturn(200);
     }
 
     @Test
-    void execValidationsSendsRequestAndNotificationViaHTTPAndEmailClients() throws IOException, InterruptedException {
-        given(this.cl.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).willReturn(mock(HttpResponse.class));
+    void execValidationsSendsRequestAndNotificationViaHTTPAndEmailClients() {
+        given(this.res.body()).willReturn("");
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .willReturn(CompletableFuture.completedFuture(this.res));
 
         tasks.add(new ValidationTask(0, "http://localhost", Collections.emptyList(), 0, ""));
-        given(this.dao.getAll()).willReturn(tasks);
+        given(this.dao.getAll()).willReturn(this.tasks);
 
         this.vs.execValidations();
 
         assertEquals(1, this.dao.getAll().size());
-        verify(this.cl).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
+        verify(this.cl).sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
         verify(this.ns).sendVTaskErrorsNotification(anyList());
     }
 
     @Test
-    void whenExceptionOccursDuringExecValidationsRequestErrorIsLogged() throws IOException, InterruptedException {
-        given(this.cl.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).willThrow(InterruptedException.class);
+    void whenExceptionOccursDuringExecValidationsRequestErrorIsLogged() {
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .willReturn(CompletableFuture.failedFuture(new InterruptedException("Simulated Exception")));
 
         List<String> headers = new ArrayList<>();
         headers.add("X:0");
         this.tasks.add(new ValidationTask(0, "http://localhost", headers, 0, ""));
-        given(this.dao.getAll()).willReturn(tasks);
+        given(this.dao.getAll()).willReturn(this.tasks);
 
         this.vs.execValidations();
 
@@ -75,14 +84,13 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsLogsValidTaskResult() throws IOException, InterruptedException {
-        HttpResponse<String> r = mock(HttpResponse.class);
-        given(r.statusCode()).willReturn(200);
-        given(r.body()).willReturn("");
-        given(this.cl.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).willReturn(r);
+    void execValidationsLogsValidTaskResult() {
+        given(this.res.body()).willReturn("");
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .willReturn(CompletableFuture.completedFuture(this.res));
 
         this.tasks.add(new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, ""));
-        given(this.dao.getAll()).willReturn(tasks);
+        given(this.dao.getAll()).willReturn(this.tasks);
 
         this.vs.execValidations();
 
@@ -91,13 +99,13 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsLogsInvalidTaskResult() throws IOException, InterruptedException {
-        given(r.statusCode()).willReturn(200);
-        given(r.body()).willReturn("");
-        given(this.cl.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).willReturn(r);
+    void execValidationsLogsInvalidTaskResult() {
+        given(this.res.body()).willReturn(null);
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .willReturn(CompletableFuture.completedFuture(this.res));
 
-        this.tasks.add(new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, "VAL"));
-        given(this.dao.getAll()).willReturn(tasks);
+        this.tasks.add(new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, ""));
+        given(this.dao.getAll()).willReturn(this.tasks);
 
         this.vs.execValidations();
 
