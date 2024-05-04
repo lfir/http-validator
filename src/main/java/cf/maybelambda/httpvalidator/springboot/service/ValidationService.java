@@ -14,10 +14,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.Objects.isNull;
 
@@ -49,25 +48,27 @@ public class ValidationService {
             reqs.add(req.build());
         }
 
-        Map<Integer, HttpResponse<String>> resps = new HashMap<>();
+        List<HttpResponse<String>> resps = new ArrayList<>();
         List<CompletableFuture<HttpResponse<String>>> completableFutures = reqs.stream()
             .map(request -> client.sendAsync(request, HttpResponse.BodyHandlers.ofString()))
             .toList();
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
-        allFutures.thenRun(() -> {
-            for (int i = 0; i < completableFutures.size(); i++) {
-                resps.put(i, completableFutures.get(i).join());
-            }
-        }).exceptionally(ex -> {
-            logger.error("HTTPClient's request for the validation task could not be completed.", ex);
-            return null;
-        }).join();
+        CompletableFuture<List<HttpResponse<String>>> combinedFutures = CompletableFuture
+            .allOf(completableFutures.toArray(new CompletableFuture[0]))
+            .thenApply(future -> completableFutures.stream()
+                .map(CompletableFuture::join)
+                .toList()
+            );
+        try {
+            resps = combinedFutures.get();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("HTTPClient's request for the validation task could not be completed.", e);
+        }
 
         List<String[]> failures = new ArrayList<>();
-        for (Map.Entry<Integer, HttpResponse<String>> resen : resps.entrySet()) {
-            ValidationTask task = tasks.get(resen.getKey());
+        for (int i = 0; i < resps.size(); i++) {
+            ValidationTask task = tasks.get(i);
+            HttpResponse<String> res = resps.get(i);
             String logmsg = "VALIDATION ";
-            HttpResponse<String> res = resen.getValue();
             if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
                 String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
                 failures.add(notifData);
