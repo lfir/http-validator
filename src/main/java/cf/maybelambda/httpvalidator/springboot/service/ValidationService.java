@@ -23,6 +23,7 @@ import static java.util.Objects.isNull;
 @Service
 public class ValidationService {
     static final String HEADER_KEY_VALUE_DELIMITER = ":";
+    private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);
     private HttpClient client;
     private static Logger logger = LoggerFactory.getLogger(ValidationService.class);
     @Autowired
@@ -32,7 +33,7 @@ public class ValidationService {
 
     public ValidationService() {
         this.client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(TIMEOUT_SECONDS)
             .followRedirects(HttpClient.Redirect.ALWAYS).build();
     }
 
@@ -44,7 +45,7 @@ public class ValidationService {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
             task.reqHeaders().forEach(h -> req.headers(h.split(HEADER_KEY_VALUE_DELIMITER)));
-            req.GET();
+            req.timeout(TIMEOUT_SECONDS);
             reqs.add(req.build());
         }
 
