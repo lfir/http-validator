@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @CrossOrigin
 public class AppInfoController {
-	protected static final String STATUS_ENDPOINT = "/api/status";
+    protected static final String STATUS_ENDPOINT = "/api/status";
 
-	/**
-	 * If WebApplicationContext initialization was completed returns OK.
-	 * @return The HTTP response object.
-	 */
-	@GetMapping(STATUS_ENDPOINT)
-	public HttpStatus informWebAppStatus() {
-		return HttpStatus.OK;
-	}
+    /**
+     * If WebApplicationContext initialization was completed returns OK.
+     * @return The HTTP response object.
+     */
+    @GetMapping(STATUS_ENDPOINT)
+    public HttpStatus informWebAppStatus() {
+        return HttpStatus.OK;
+    }
 }

@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 public class HTTPValidatorWebApp {
-	public static void main(String[] args) {
-		SpringApplication.run(HTTPValidatorWebApp.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(HTTPValidatorWebApp.class, args);
+    }
 }

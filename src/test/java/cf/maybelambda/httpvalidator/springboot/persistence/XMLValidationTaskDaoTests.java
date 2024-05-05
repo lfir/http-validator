@@ -18,10 +18,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.*;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.HEADER_DELIMITER;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.REQ_HEADERS_ATTR;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.REQ_METHOD_ATTR;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.REQ_URL_ATTR;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.RES_BODY_ATTR;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.RES_SC_ATTR;
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.VALIDATION_TAG;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,7 +70,7 @@ public class XMLValidationTaskDaoTests {
         given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(0);
 
-        assert this.taskDao.getAll().isEmpty();
+        assertThat(this.taskDao.getAll().isEmpty()).isTrue();
     }
 
     @Test
