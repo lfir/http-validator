@@ -102,7 +102,7 @@ public class XMLValidationTaskDaoTests {
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
-        assert ans.get(0).reqHeaders().isEmpty();
+        assertThat(ans.get(0).reqHeaders().isEmpty()).isTrue();
         assertEquals("", ans.get(0).validBody());
     }
 

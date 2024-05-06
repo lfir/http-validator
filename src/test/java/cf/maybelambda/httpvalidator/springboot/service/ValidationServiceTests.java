@@ -98,7 +98,7 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
-        assert this.dao.getAll().get(0).reqHeaders().isEmpty();
+        assertThat(this.dao.getAll().get(0).reqHeaders().isEmpty()).isTrue();
         verify(this.logger).info(anyString(), anyString());
     }
 

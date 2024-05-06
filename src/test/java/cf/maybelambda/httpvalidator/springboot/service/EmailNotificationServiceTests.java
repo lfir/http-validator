@@ -43,10 +43,10 @@ public class EmailNotificationServiceTests {
 
         String ans = this.service.buildMailBody(res);
 
-        assert ans.contains(BODY_LINE1 + ss0[0]);
-        assert ans.contains(BODY_LINE2 + ss0[1]);
-        assert ans.contains(BODY_LINE1 + ss1[0]);
-        assert ans.contains(BODY_LINE2 + ss1[1]);
+        assertThat(ans.contains(BODY_LINE1 + ss0[0])).isTrue();
+        assertThat(ans.contains(BODY_LINE2 + ss0[1])).isTrue();
+        assertThat(ans.contains(BODY_LINE1 + ss1[0])).isTrue();
+        assertThat(ans.contains(BODY_LINE2 + ss1[1])).isTrue();
     }
 
     @Test
@@ -61,7 +61,7 @@ public class EmailNotificationServiceTests {
         String ans = this.service.buildMailBody(res);
 
         assertEquals(1500, ss[2].length());
-        assert ans.length() < 900;
+        assertThat(ans.length()).isLessThan(900);
     }
 
     @Test
