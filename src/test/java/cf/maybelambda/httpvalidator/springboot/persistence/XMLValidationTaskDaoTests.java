@@ -13,6 +13,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.management.modelmbean.XMLParseException;
 import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void xmlWithNoValidationTagsProducesZeroTasks() throws IOException, SAXException {
+    void xmlWithNoValidationTagsProducesZeroTasks() throws IOException, SAXException, XMLParseException {
         given(doc.getElementsByTagName(anyString())).willReturn(this.nodes);
         given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(0);
@@ -74,7 +75,7 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() throws IOException, SAXException {
+    void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() throws IOException, SAXException, XMLParseException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
         given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
@@ -92,7 +93,7 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() throws IOException, SAXException {
+    void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() throws IOException, SAXException, XMLParseException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
         given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
@@ -111,7 +112,7 @@ public class XMLValidationTaskDaoTests {
         Logger logger = mock(Logger.class);
         this.taskDao.setLogger(logger);
 
-        assertThrows(RuntimeException.class, () -> this.taskDao.getAll());
-        verify(logger).error(anyString(), anyString());
+        assertThrows(XMLParseException.class, () -> this.taskDao.getAll());
+        verify(logger).error(anyString());
     }
 }

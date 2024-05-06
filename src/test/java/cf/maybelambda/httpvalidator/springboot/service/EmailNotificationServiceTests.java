@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
+import java.rmi.ConnectIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -89,7 +90,7 @@ public class EmailNotificationServiceTests {
         Logger logger = mock(Logger.class);
         this.service.setLogger(logger);
 
-        assertThrows(RuntimeException.class, () -> this.service.sendVTaskErrorsNotification(Collections.emptyList()));
-        verify(logger).error(anyString(), any(Request.class));
+        assertThrows(ConnectIOException.class, () -> this.service.sendVTaskErrorsNotification(Collections.emptyList()));
+        verify(logger).error(anyString());
     }
 }

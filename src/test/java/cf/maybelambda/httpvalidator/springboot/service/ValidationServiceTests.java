@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.management.modelmbean.XMLParseException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.rmi.ConnectIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +56,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsSendsRequestAndNotificationViaHTTPAndEmailClients() {
+    void execValidationsSendsRequestAndNotificationViaHTTPAndEmailClients() throws ConnectIOException, XMLParseException {
         given(this.res.body()).willReturn("");
         given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .willReturn(CompletableFuture.completedFuture(this.res));
@@ -70,7 +72,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void whenExceptionOccursDuringExecValidationsRequestErrorIsLogged() {
+    void whenExceptionOccursDuringExecValidationsRequestErrorIsLogged() throws ConnectIOException, XMLParseException {
         given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .willReturn(CompletableFuture.failedFuture(new InterruptedException("Simulated Exception")));
 
@@ -86,7 +88,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsLogsValidTaskResult() {
+    void execValidationsLogsValidTaskResult() throws ConnectIOException, XMLParseException {
         given(this.res.body()).willReturn("");
         given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .willReturn(CompletableFuture.completedFuture(this.res));
@@ -101,7 +103,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void execValidationsLogsInvalidTaskResult() {
+    void execValidationsLogsInvalidTaskResult() throws ConnectIOException, XMLParseException {
         given(this.res.body()).willReturn(null);
         given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .willReturn(CompletableFuture.completedFuture(this.res));

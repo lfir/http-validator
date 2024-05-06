@@ -10,6 +10,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.management.modelmbean.XMLParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,7 +38,7 @@ public class XMLValidationTaskDao {
         this.xmlParser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
-    public List<ValidationTask> getAll() {
+    public List<ValidationTask> getAll() throws XMLParseException {
         List<ValidationTask> tasks = new ArrayList<>();
         try {
             File datafile = new File(DATAFILE_PATH);
@@ -56,8 +57,9 @@ public class XMLValidationTaskDao {
                 tasks.add(v);
             }
         } catch (NullPointerException | IOException | SAXException e) {
-            logger.error("Failed to parse datafile at: {}", DATAFILE_PATH);
-            throw new RuntimeException(e);
+            String errmsg = "Failed to parse datafile at: " + DATAFILE_PATH;
+            logger.error(errmsg);
+            throw new XMLParseException(e, errmsg + "\n");
         }
         return tasks;
     }

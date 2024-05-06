@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.management.modelmbean.XMLParseException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.rmi.ConnectIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class ValidationService {
     }
 
     @Scheduled(cron = "${cron.expression}")
-    public void execValidations() {
+    public void execValidations() throws ConnectIOException, XMLParseException {
         List<HttpRequest> reqs = new ArrayList<>();
         List<ValidationTask> tasks = this.taskReader.getAll();
         for (ValidationTask task : tasks) {

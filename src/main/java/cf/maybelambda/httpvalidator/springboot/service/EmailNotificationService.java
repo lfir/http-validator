@@ -11,9 +11,11 @@ import io.micrometer.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.rmi.ConnectIOException;
 import java.util.List;
 
 @Service
@@ -44,7 +46,7 @@ public class EmailNotificationService {
         return res;
     }
 
-    public void sendVTaskErrorsNotification(List<String[]> mailBody) {
+    public void sendVTaskErrorsNotification(@NonNull List<String[]> mailBody) throws ConnectIOException {
         Email from = new Email(FROM);
         from.setName("Chronos Maybelambda");
         String subject = "Notification of HTTP validation results";
@@ -60,8 +62,9 @@ public class EmailNotificationService {
             Response res = this.client.api(request);
             logger.info("Email delivery result: Status Code: {}", res.getStatusCode() + " - Body: " + res.getBody());
         } catch (IOException e) {
-            logger.error("Notification email delivery POST request could not be completed: {}", request);
-            throw new RuntimeException(e);
+            String errmsg = "POST request for delivery of the Notification Email could not be completed.";
+            logger.error(errmsg);
+            throw new ConnectIOException(errmsg, e);
         }
     }
 
