@@ -19,3 +19,4 @@ Next steps:
 
 - Offer some  basic processing statistics and updating the XML with the tasks through the web API
 - XML Schema
+- Sending POST requests
