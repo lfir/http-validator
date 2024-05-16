@@ -18,8 +18,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,8 +56,8 @@ public class XMLValidationTaskDao {
     public List<ValidationTask> getAll() throws XMLParseException {
         List<ValidationTask> tasks = new ArrayList<>();
         try {
-            File datafile = new File(DATAFILE_PATH);
-            Document doc = this.xmlParser.parse(datafile);
+            InputStream dfStream = new FileInputStream(DATAFILE_PATH);
+            Document doc = this.xmlParser.parse(dfStream);
             NodeList validations = doc.getElementsByTagName(VALIDATION_TAG);
 
             for (int i = 0; i < validations.getLength(); i++) {

@@ -15,8 +15,8 @@ import org.xml.sax.SAXException;
 
 import javax.management.modelmbean.XMLParseException;
 import javax.xml.parsers.DocumentBuilder;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.HEADER_DELIMITER;
@@ -68,7 +68,7 @@ public class XMLValidationTaskDaoTests {
     @Test
     void xmlWithNoValidationTagsProducesZeroTasks() throws IOException, SAXException, XMLParseException {
         given(doc.getElementsByTagName(anyString())).willReturn(this.nodes);
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
+        given(this.xmlParser.parse(any(InputStream.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(0);
 
         assertThat(this.taskDao.getAll().isEmpty()).isTrue();
@@ -77,7 +77,7 @@ public class XMLValidationTaskDaoTests {
     @Test
     void taskDataIsReadWhenWellFormedXMLParsedWithoutErrors() throws IOException, SAXException, XMLParseException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
+        given(this.xmlParser.parse(any(InputStream.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
 
         given(this.nodeB.getTextContent()).willReturn("X-H1:B32C,H2:456");
@@ -95,7 +95,7 @@ public class XMLValidationTaskDaoTests {
     @Test
     void xmlAttributesThatCanBeEmptyInDatafileAreParsedOk() throws IOException, SAXException, XMLParseException {
         given(this.doc.getElementsByTagName(VALIDATION_TAG)).willReturn(this.nodes);
-        given(this.xmlParser.parse(any(File.class))).willReturn(this.doc);
+        given(this.xmlParser.parse(any(InputStream.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
 
         given(this.nodeB.getTextContent()).willReturn("");
@@ -108,7 +108,7 @@ public class XMLValidationTaskDaoTests {
 
     @Test
     void whenGetAllThrowsSAXExceptionThenErrorIsLogged() throws IOException, SAXException {
-        given(this.xmlParser.parse(any(File.class))).willThrow(SAXException.class);
+        given(this.xmlParser.parse(any(InputStream.class))).willThrow(SAXException.class);
         Logger logger = mock(Logger.class);
         this.taskDao.setLogger(logger);
 
