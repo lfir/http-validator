@@ -4,6 +4,7 @@ import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -11,9 +12,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.management.modelmbean.XMLParseException;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,13 +33,23 @@ public class XMLValidationTaskDao {
     static final String HEADER_DELIMITER = ",";
     static final String RES_SC_ATTR = "ressc";
     static final String RES_BODY_ATTR = "resbody";
+    private static final String SCHEMA_FILENAME = "validations.xsd";
     @Value("${datafile}")
     private String DATAFILE_PATH;
     private DocumentBuilder xmlParser;
     private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
 
-    public XMLValidationTaskDao() throws ParserConfigurationException {
-        this.xmlParser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    public XMLValidationTaskDao() throws ParserConfigurationException, SAXException, IOException {
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        Schema schema = schemaFactory.newSchema((new ClassPathResource(SCHEMA_FILENAME)).getURL());
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        dbFactory.setSchema(schema);
+        dbFactory.setIgnoringElementContentWhitespace(true);
+        dbFactory.setNamespaceAware(true);
+        this.xmlParser = dbFactory.newDocumentBuilder();
+
+        XMLErrorHandler xsdErrorHandler = new XMLErrorHandler();
+        this.xmlParser.setErrorHandler(xsdErrorHandler);
     }
 
     public List<ValidationTask> getAll() throws XMLParseException {
