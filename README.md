@@ -18,5 +18,4 @@ Run schedule can also be set through a separate configuration file (restart requ
 Next steps:
 
 - Offer some  basic processing statistics and updating the XML with the tasks through the web API
-- XML Schema
 - Sending POST requests
