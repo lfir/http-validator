@@ -47,6 +47,9 @@ public class XMLValidationTaskDao {
         dbFactory.setSchema(schema);
         dbFactory.setIgnoringElementContentWhitespace(true);
         dbFactory.setNamespaceAware(true);
+        dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        dbFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        dbFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         this.xmlParser = dbFactory.newDocumentBuilder();
 
         XMLErrorHandler xsdErrorHandler = new XMLErrorHandler();
