@@ -13,7 +13,15 @@
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="requrl" type="xs:string" use="required" />
+                        <xs:attribute name="requrl" use="required">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:anyURI">
+                                    <xs:pattern value="https?://[\w;/?:@=+$,.!~*'|()%\-&amp;]+" />
+                                    <xs:minLength value="8" />
+                                    <xs:maxLength value="2000" />
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
                         <xs:attribute name="reqheaders" type="xs:string" use="required" />
                         <xs:attribute name="ressc" use="required">
                             <xs:simpleType>
