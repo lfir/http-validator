@@ -26,7 +26,7 @@
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:pattern value="[^:,\s]+:[^:,\s]+(,[^:,\s]+:[^:,\s]+)+|[^:,\s]+:[^:,\s]+|[*]{0}" />
-                                    <xs:maxLength value="2000" />
+                                    <xs:maxLength value="4000" />
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
