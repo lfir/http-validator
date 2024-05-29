@@ -26,6 +26,7 @@ import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationT
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.RES_BODY_ATTR;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.RES_SC_ATTR;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.VALIDATION_TAG;
+import static cf.maybelambda.httpvalidator.springboot.service.ValidationService.HEADER_KEY_VALUE_DELIMITER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -80,7 +81,9 @@ public class XMLValidationTaskDaoTests {
         given(this.xmlParser.parse(any(InputStream.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(1);
 
-        given(this.nodeB.getTextContent()).willReturn("X-H1:B32C,H2:456");
+        given(this.nodeB.getTextContent()).willReturn(
+            String.format("X-H1%sB32C%sH2%s456", HEADER_KEY_VALUE_DELIMITER, HEADER_DELIMITER, HEADER_KEY_VALUE_DELIMITER)
+        );
 
         List<ValidationTask> ans = this.taskDao.getAll();
 

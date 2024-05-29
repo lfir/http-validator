@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static cf.maybelambda.httpvalidator.springboot.service.ValidationService.HEADER_KEY_VALUE_DELIMITER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,7 +78,7 @@ public class ValidationServiceTests {
             .willReturn(CompletableFuture.failedFuture(new InterruptedException("Simulated Exception")));
 
         List<String> headers = new ArrayList<>();
-        headers.add("X:0");
+        headers.add(String.format("X%s0", HEADER_KEY_VALUE_DELIMITER));
         this.tasks.add(new ValidationTask(0, "http://localhost", headers, 0, ""));
         given(this.dao.getAll()).willReturn(this.tasks);
 

@@ -31,7 +31,7 @@ public class XMLValidationTaskDao {
     static final String REQ_METHOD_ATTR = "reqmethod";
     static final String REQ_URL_ATTR = "requrl";
     static final String REQ_HEADERS_ATTR = "reqheaders";
-    static final String HEADER_DELIMITER = ",";
+    static final String HEADER_DELIMITER = "\u0009";
     static final String RES_SC_ATTR = "ressc";
     static final String RES_BODY_ATTR = "resbody";
     private static final String SCHEMA_FILENAME = "validations.xsd";

@@ -14,7 +14,7 @@
 ### Notes
 
 - Run schedule can also be set through a separate configuration file (restart required).
-- Header values can contain spaces (i.e. for User-Agent, it's only disallowed by the schema currently).
+- Header values can contain spaces (i.e. for User-Agent).
 
 Next steps:
 

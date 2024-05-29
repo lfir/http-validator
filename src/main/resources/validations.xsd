@@ -25,7 +25,7 @@
                         <xs:attribute name="reqheaders" use="required" >
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:pattern value="[^:,\s]+:[^:,\s]+(,[^:,\s]+:[^:,\s]+)+|[^:,\s]+:[^:,\s]+|[*]{0}" />
+                                    <xs:pattern value="[a-zA-Z\d\-]+\|[^|\t]+(\t[a-zA-Z\d\-]+\|[^|\t]+)+|[a-zA-Z\d\-]+\|[^|\t]+|[*]{0}" />
                                     <xs:maxLength value="4000" />
                                 </xs:restriction>
                             </xs:simpleType>

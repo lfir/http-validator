@@ -19,12 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.isNull;
 
 @Service
 public class ValidationService {
-    static final String HEADER_KEY_VALUE_DELIMITER = ":";
+    public static final String HEADER_KEY_VALUE_DELIMITER = "|";
     private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);
     private HttpClient client;
     private static Logger logger = LoggerFactory.getLogger(ValidationService.class);
@@ -46,7 +47,7 @@ public class ValidationService {
         for (ValidationTask task : tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
-            task.reqHeaders().forEach(h -> req.headers(h.split(HEADER_KEY_VALUE_DELIMITER)));
+            task.reqHeaders().forEach(h -> req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));
             req.timeout(TIMEOUT_SECONDS);
             reqs.add(req.build());
         }
