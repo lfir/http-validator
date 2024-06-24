@@ -21,8 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import static java.util.Objects.isNull;
-
 @Service
 public class ValidationService {
     public static final String HEADER_KEY_VALUE_DELIMITER = "|";
@@ -73,7 +71,7 @@ public class ValidationService {
             ValidationTask task = tasks.get(i);
             HttpResponse<String> res = resps.get(i);
             String logmsg = "VALIDATION ";
-            if (isNull(res.body()) || !task.isValid(res.statusCode(), res.body())) {
+            if (!task.isValid(res.statusCode(), res.body())) {
                 String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
                 failures.add(notifData);
                 logmsg += "FAILURE";
