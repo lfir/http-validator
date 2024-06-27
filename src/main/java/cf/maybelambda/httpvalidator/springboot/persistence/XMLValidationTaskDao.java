@@ -20,7 +20,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,28 +57,31 @@ public class XMLValidationTaskDao {
 
     public List<ValidationTask> getAll() throws XMLParseException {
         List<ValidationTask> tasks = new ArrayList<>();
-        try {
-            InputStream dfStream = new FileInputStream(DATAFILE_PATH);
-            Document doc = this.xmlParser.parse(dfStream);
-            NodeList validations = doc.getElementsByTagName(VALIDATION_TAG);
+        NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
 
-            for (int i = 0; i < validations.getLength(); i++) {
-                NamedNodeMap nm = validations.item(i).getAttributes();
-                ValidationTask v = new ValidationTask(
-                    Integer.parseInt(nm.getNamedItem(REQ_METHOD_ATTR).getTextContent()),
-                    nm.getNamedItem(REQ_URL_ATTR).getTextContent(),
-                    Arrays.stream(nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(HEADER_DELIMITER)).filter(h -> h != "").toList(),
-                    Integer.parseInt(nm.getNamedItem(RES_SC_ATTR).getTextContent()),
-                    nm.getNamedItem(RES_BODY_ATTR).getTextContent()
-                );
-                tasks.add(v);
-            }
+        for (int i = 0; i < validations.getLength(); i++) {
+            NamedNodeMap nm = validations.item(i).getAttributes();
+            ValidationTask v = new ValidationTask(
+                Integer.parseInt(nm.getNamedItem(REQ_METHOD_ATTR).getTextContent()),
+                nm.getNamedItem(REQ_URL_ATTR).getTextContent(),
+                Arrays.stream(nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(HEADER_DELIMITER)).filter(h -> !h.isEmpty()).toList(),
+                Integer.parseInt(nm.getNamedItem(RES_SC_ATTR).getTextContent()),
+                nm.getNamedItem(RES_BODY_ATTR).getTextContent()
+            );
+            tasks.add(v);
+        }
+
+        return tasks;
+    }
+
+    public Document getDocData() throws XMLParseException {
+        try {
+            return this.xmlParser.parse(new FileInputStream(DATAFILE_PATH));
         } catch (NullPointerException | IOException | SAXException e) {
             String errmsg = "Failed to parse datafile at: " + DATAFILE_PATH;
             logger.error(errmsg);
             throw new XMLParseException(e, errmsg + "\n");
         }
-        return tasks;
     }
 
     void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }

@@ -5,7 +5,9 @@ import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import javax.management.modelmbean.XMLParseException;
@@ -31,6 +33,8 @@ public class ValidationService {
     private EmailNotificationService notificationService;
     @Autowired
     private XMLValidationTaskDao taskReader;
+    @Autowired
+    private Environment env;
 
     public ValidationService() {
         this.client = HttpClient.newBuilder()
@@ -85,6 +89,20 @@ public class ValidationService {
         }
     }
 
+    public boolean isValidConfig() {
+        boolean ans = true;
+        String expr = this.env.getProperty("cron.expression");
+        try {
+            CronExpression.parse(expr);
+        } catch (IllegalArgumentException e) {
+            if (!"-".equals(expr)) {
+                ans = false;
+            }
+        }
+
+        return ans;
+    }
+
     void setClient(HttpClient client) { this.client = client; }
 
     void setNotificationService(EmailNotificationService service) { this.notificationService = service; }
@@ -92,4 +110,6 @@ public class ValidationService {
     void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }
 
     void setLogger(Logger logger) { ValidationService.logger = logger; }
+
+    void setEnv(Environment env) { this.env = env; }
 }

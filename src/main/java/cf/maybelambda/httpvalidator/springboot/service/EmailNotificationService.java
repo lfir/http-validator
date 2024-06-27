@@ -7,10 +7,11 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
-import io.micrometer.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -18,17 +19,22 @@ import java.io.IOException;
 import java.rmi.ConnectIOException;
 import java.util.List;
 
+import static io.micrometer.common.util.StringUtils.isBlank;
+import static io.micrometer.common.util.StringUtils.truncate;
+
 @Service
 public class EmailNotificationService {
     static final String BODY_LINE1 = "Request URL: ";
     static final String BODY_LINE2 = "Response Status Code: ";
     static final String BODY_LINE3 = "Response body: ";
-    private SendGrid client;
     @Value("${notifications.from}")
-    private String FROM;
+    private String from;
     @Value("${notifications.to}")
-    private String TO;
+    private String to;
+    private SendGrid client;
     private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
+    @Autowired
+    private Environment env;
 
     public EmailNotificationService(@Value("${sendgrid.apikey}") String apikey) {
         this.client = new SendGrid(apikey);
@@ -39,7 +45,7 @@ public class EmailNotificationService {
         for (String[] c : contents) {
             String p0 = BODY_LINE1 + c[0] + "\n";
             String p1 = BODY_LINE2 + c[1] + "\n";
-            String p2 = BODY_LINE3 + (c[2] == null ? "" : StringUtils.truncate(c[2], 800, "..."));
+            String p2 = BODY_LINE3 + (c[2] == null ? "" : truncate(c[2], 800, "..."));
             res += p0 + p1 + p2 + "\n\n\n";
         }
 
@@ -47,10 +53,10 @@ public class EmailNotificationService {
     }
 
     public void sendVTaskErrorsNotification(@NonNull List<String[]> mailBody) throws ConnectIOException {
-        Email from = new Email(FROM);
+        Email from = new Email(this.from);
         from.setName("Chronos Maybelambda");
         String subject = "Notification of HTTP validation results";
-        Email to = new Email(TO);
+        Email to = new Email(this.to);
         Content content = new Content("text/plain", this.buildMailBody(mailBody));
         Mail mail = new Mail(from, subject, to, content);
 
@@ -68,7 +74,17 @@ public class EmailNotificationService {
         }
     }
 
+    public boolean isValidConfig() {
+        return !(isBlank(this.from) || isBlank(this.to) || isBlank(this.env.getProperty("sendgrid.apikey")));
+    }
+
     void setClient(SendGrid sg) { this.client = sg; }
 
     void setLogger(Logger logger) { EmailNotificationService.logger = logger; }
+
+    void setEnv(Environment env) { this.env = env; }
+
+    void setFrom(String from) { this.from = from; }
+
+    void setTo(String to) { this.to = to; }
 }

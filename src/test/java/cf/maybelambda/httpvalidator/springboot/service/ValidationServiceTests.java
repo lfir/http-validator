@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.management.modelmbean.XMLParseException;
@@ -40,6 +41,7 @@ public class ValidationServiceTests {
     private final Logger logger = mock(Logger.class);
     private final List<ValidationTask> tasks = new ArrayList<>();
     private final HttpRequest req = mock(HttpRequest.class);
+    private final Environment env = mock(Environment.class);
     @Autowired
     private ValidationService vs;
 
@@ -50,6 +52,7 @@ public class ValidationServiceTests {
         this.vs.setTaskReader(this.dao);
         this.vs.setLogger(this.logger);
         this.tasks.clear();
+        this.vs.setEnv(env);
 
         given(this.req.uri()).willReturn(URI.create("http://localhost"));
         given(this.res.request()).willReturn(this.req);
@@ -116,5 +119,33 @@ public class ValidationServiceTests {
 
         assertThat(this.dao.getAll()).isNotEmpty();
         verify(this.logger).info(anyString(), anyString());
+    }
+
+    @Test
+    void whenDashCronExpressionIsValidConfigReturnsTrue() {
+        given(this.env.getProperty(anyString())).willReturn("-");
+
+        assertThat(this.vs.isValidConfig()).isTrue();
+    }
+
+    @Test
+    void whenDailyMacroCronExpressionIsValidConfigReturnsTrue() {
+        given(this.env.getProperty(anyString())).willReturn("@daily");
+
+        assertThat(this.vs.isValidConfig()).isTrue();
+    }
+
+    @Test
+    void whenInvalidCronExpressionIsValidConfigReturnsFalse() {
+        given(this.env.getProperty(anyString())).willReturn("*");
+
+        assertThat(this.vs.isValidConfig()).isFalse();
+    }
+
+    @Test
+    void whenNullCronExpressionIsValidConfigReturnsFalse() {
+        given(this.env.getProperty(anyString())).willReturn(null);
+
+        assertThat(this.vs.isValidConfig()).isFalse();
     }
 }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.verify;
 @ActiveProfiles("test")
 public class EmailNotificationServiceTests {
     private final SendGrid sg = mock(SendGrid.class);
+    private final Environment env = mock(Environment.class);
     @Autowired
     EmailNotificationService service;
 
@@ -92,5 +94,40 @@ public class EmailNotificationServiceTests {
 
         assertThrows(ConnectIOException.class, () -> this.service.sendVTaskErrorsNotification(Collections.emptyList()));
         verify(logger).error(anyString());
+    }
+
+    @Test
+    void whenFromToAndApiKeyAreNullIsValidConfigReturnsFalse() {
+        assertThat(this.service.isValidConfig()).isFalse();
+    }
+
+        @Test
+    void whenFromToOrApiKeyAreEmptyIsValidConfigReturnsFalse() {
+        this.service.setEnv(this.env);
+
+        given(this.env.getProperty(anyString())).willReturn("apiKey");
+        this.service.setFrom("");
+        this.service.setTo("b@b.com");
+        assertThat(this.service.isValidConfig()).isFalse();
+
+        given(this.env.getProperty(anyString())).willReturn("apiKey");
+        this.service.setFrom("a@a.com");
+        this.service.setTo("");
+        assertThat(this.service.isValidConfig()).isFalse();
+
+        given(this.env.getProperty(anyString())).willReturn("");
+        this.service.setFrom("a@a.com");
+        this.service.setTo("b@b.com");
+        assertThat(this.service.isValidConfig()).isFalse();
+    }
+
+    @Test
+    void whenFromToAndApiKeyAreNotEmptyOrNullIsValidConfigReturnsTrue() {
+        this.service.setEnv(this.env);
+        given(this.env.getProperty(anyString())).willReturn("apiKey");
+        this.service.setFrom("a@a.com");
+        this.service.setTo("b@b.com");
+
+        assertThat(this.service.isValidConfig()).isTrue();
     }
 }
