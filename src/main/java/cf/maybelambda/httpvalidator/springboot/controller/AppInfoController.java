@@ -17,7 +17,12 @@ import java.util.Map;
 @RestController
 @CrossOrigin
 public class AppInfoController {
-    protected static final String STATUS_ENDPOINT = "/api/status";
+    static final String STATUS_ENDPOINT = "/api/status";
+    static final String ERROR_VALUE = "ERROR";
+    static final String OK_VALUE = "OK";
+    static final String START_TIME_KEY = "start_time";
+    static final String DATAFILE_STATUS_KEY = "datafile_status";
+    static final String CONFIG_STATUS_KEY = "config_status";
     @Autowired
     XMLValidationTaskDao dao;
     @Autowired
@@ -34,22 +39,20 @@ public class AppInfoController {
     @GetMapping(STATUS_ENDPOINT)
     public ResponseEntity<Map<String, String>> informWebAppStatus() {
         Map<String, String> res = new HashMap<>();
-        String errVal = "ERROR";
-        String okVal = "OK";
 
-        res.put("start_time", HTTPValidatorWebApp.startTime);
+        res.put(START_TIME_KEY, HTTPValidatorWebApp.startTime);
 
-        String dataFileStatus = okVal;
+        String dataFileStatus = OK_VALUE;
         try {
             this.dao.getDocData();
         } catch (XMLParseException e) {
-            dataFileStatus = errVal;
+            dataFileStatus = ERROR_VALUE;
         }
-        res.put("datafile_status", dataFileStatus);
+        res.put(DATAFILE_STATUS_KEY, dataFileStatus);
 
         res.put(
-         "config_status",
-            this.mailServ.isValidConfig() && this.valServ.isValidConfig() ? okVal : errVal
+            CONFIG_STATUS_KEY,
+            this.mailServ.isValidConfig() && this.valServ.isValidConfig() ? OK_VALUE : ERROR_VALUE
         );
 
         return ResponseEntity.ok(res);

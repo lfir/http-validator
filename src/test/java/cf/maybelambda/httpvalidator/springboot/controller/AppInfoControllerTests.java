@@ -7,19 +7,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.management.modelmbean.XMLParseException;
+
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.CONFIG_STATUS_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.DATAFILE_STATUS_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.OK_VALUE;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AppInfoController.class)
 class AppInfoControllerTests {
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private AppInfoController ctrl;
     @MockBean
     XMLValidationTaskDao dao;
     @MockBean
@@ -28,9 +35,22 @@ class AppInfoControllerTests {
     ValidationService valServ;
 
     @Test
-    void informWebAppStatusReturns200WhenNoInitErrors() throws Exception {
-        assertThat(this.ctrl.informWebAppStatus().getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+    void informWebAppStatusReturns200AndJSONStatusDataWhenNoInitErrors() throws Exception {
+        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$." + START_TIME_KEY).isString())
+            .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(OK_VALUE))
+            .andExpect(jsonPath("$." + CONFIG_STATUS_KEY).value(ERROR_VALUE)
+        );
+    }
 
-        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT)).andExpect(status().isOk());
+    @Test
+    void informWebAppStatusReturnsDataFileErrorStatusWhenParserThrowsException() throws Exception {
+        given(this.dao.getDocData()).willThrow(XMLParseException.class);
+
+        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
+            .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(ERROR_VALUE)
+        );
     }
 }
