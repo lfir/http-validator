@@ -1,8 +1,8 @@
 package cf.maybelambda.httpvalidator.springboot.controller;
 
-import cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService;
+import cf.maybelambda.httpvalidator.springboot.service.EventListenerService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +24,13 @@ public class AppInfoController {
     static final String DATAFILE_STATUS_KEY = "datafile_status";
     static final String CONFIG_STATUS_KEY = "config_status";
     @Autowired
-    XMLValidationTaskDao dao;
+    private XMLValidationTaskDao dao;
     @Autowired
-    EmailNotificationService mailServ;
+    private EmailNotificationService mailServ;
     @Autowired
-    ValidationService valServ;
+    private ValidationService valServ;
+    @Autowired
+    private EventListenerService eventServ;
 
     /**
      * If WebApplicationContext initialization was completed returns OK.
@@ -40,7 +42,7 @@ public class AppInfoController {
     public ResponseEntity<Map<String, String>> informWebAppStatus() {
         Map<String, String> res = new HashMap<>();
 
-        res.put(START_TIME_KEY, HTTPValidatorWebApp.startTime);
+        res.put(START_TIME_KEY, eventServ.getStartTime());
 
         String dataFileStatus = OK_VALUE;
         try {

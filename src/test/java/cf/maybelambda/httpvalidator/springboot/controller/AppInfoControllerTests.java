@@ -2,6 +2,7 @@ package cf.maybelambda.httpvalidator.springboot.controller;
 
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService;
+import cf.maybelambda.httpvalidator.springboot.service.EventListenerService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,20 +29,22 @@ class AppInfoControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    XMLValidationTaskDao dao;
+    private XMLValidationTaskDao dao;
     @MockBean
-    EmailNotificationService mailServ;
+    private EmailNotificationService mailServ;
     @MockBean
-    ValidationService valServ;
+    private ValidationService valServ;
+    @MockBean
+    private EventListenerService eventServ;
 
     @Test
     void informWebAppStatusReturns200AndJSONStatusDataWhenNoInitErrors() throws Exception {
+        given(this.eventServ.getStartTime()).willReturn("2001");
+
         this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$." + START_TIME_KEY).isString())
-            .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(OK_VALUE))
-            .andExpect(jsonPath("$." + CONFIG_STATUS_KEY).value(ERROR_VALUE)
+            .andExpect(jsonPath("$." + START_TIME_KEY).isString()
         );
     }
 
@@ -51,6 +54,26 @@ class AppInfoControllerTests {
 
         this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
             .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(ERROR_VALUE)
+        );
+    }
+
+    @Test
+    void informWebAppStatusReturnsConfigErrorStatusWhenServicesHaveInvalidConfig() throws Exception {
+        given(this.mailServ.isValidConfig()).willReturn(true);
+        given(this.valServ.isValidConfig()).willReturn(false);
+
+        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
+            .andExpect(jsonPath("$." + CONFIG_STATUS_KEY).value(ERROR_VALUE)
+        );
+    }
+
+    @Test
+    void informWebAppStatusReturnsConfigOKStatusWhenServicesHaveValidConfig() throws Exception {
+        given(this.mailServ.isValidConfig()).willReturn(true);
+        given(this.valServ.isValidConfig()).willReturn(true);
+
+        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
+            .andExpect(jsonPath("$." + CONFIG_STATUS_KEY).value(OK_VALUE)
         );
     }
 }

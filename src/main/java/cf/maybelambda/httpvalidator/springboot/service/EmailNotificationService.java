@@ -52,12 +52,11 @@ public class EmailNotificationService {
         return res;
     }
 
-    public void sendVTaskErrorsNotification(@NonNull List<String[]> mailBody) throws ConnectIOException {
+    void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
         Email from = new Email(this.from);
         from.setName("Chronos Maybelambda");
-        String subject = "Notification of HTTP validation results";
         Email to = new Email(this.to);
-        Content content = new Content("text/plain", this.buildMailBody(mailBody));
+        Content content = new Content("text/plain", body);
         Mail mail = new Mail(from, subject, to, content);
 
         Request request = new Request();
@@ -72,6 +71,20 @@ public class EmailNotificationService {
             logger.error(errmsg);
             throw new ConnectIOException(errmsg, e);
         }
+    }
+
+    public void sendVTaskErrorsNotification(@NonNull List<String[]> mailBody) throws ConnectIOException {
+        String subject = "Notification of HTTP validation results";
+        String body = this.buildMailBody(mailBody);
+
+        this.sendPlainTextEmail(subject, body);
+    }
+
+    public void sendAppTerminatedNotification(String endTime) throws ConnectIOException {
+        String subject = "HTTP Validator app terminated";
+        String body = String.format("ContextClosedEvent occurred on: %s.", endTime);
+
+        this.sendPlainTextEmail(subject, body);
     }
 
     public boolean isValidConfig() {
