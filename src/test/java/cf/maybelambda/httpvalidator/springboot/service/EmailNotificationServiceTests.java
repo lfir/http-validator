@@ -3,12 +3,10 @@ package cf.maybelambda.httpvalidator.springboot.service;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.rmi.ConnectIOException;
@@ -27,13 +25,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
-@ActiveProfiles("test")
 public class EmailNotificationServiceTests {
-    private final SendGrid sg = mock(SendGrid.class);
-    private final Environment env = mock(Environment.class);
-    @Autowired
-    EmailNotificationService service;
+    SendGrid sg = mock(SendGrid.class);
+    Environment env = mock(Environment.class);
+    EmailNotificationService mailServ;
+
+    @BeforeEach
+    void setUp() {
+        this.mailServ = new EmailNotificationService("");
+        this.mailServ.setClient(this.sg);
+        this.mailServ.setEnv(this.env);
+    }
 
     @Test
     void buildMailBodyPreservesReceivedURLsAndStatusCodesInOutput() {
@@ -43,7 +45,7 @@ public class EmailNotificationServiceTests {
         res.add(ss0);
         res.add(ss1);
 
-        String ans = this.service.buildMailBody(res);
+        String ans = this.mailServ.buildMailBody(res);
 
         assertThat(ans.contains(BODY_LINE1 + ss0[0])).isTrue();
         assertThat(ans.contains(BODY_LINE2 + ss0[1])).isTrue();
@@ -60,74 +62,83 @@ public class EmailNotificationServiceTests {
         List<String[]> res = new ArrayList<>();
         res.add(ss);
 
-        String ans = this.service.buildMailBody(res);
+        String ans = this.mailServ.buildMailBody(res);
 
         assertEquals(1500, ss[2].length());
         assertThat(ans.length()).isLessThan(900);
     }
 
     @Test
-    void notificationServiceSendsEmailViaSendgridClient() throws IOException {
+    void sendVTaskErrorsNotificationSendsEmailViaSendgridClient() throws IOException {
         Response res = mock(Response.class);
         given(res.getStatusCode()).willReturn(200);
         given(res.getBody()).willReturn("");
         given(this.sg.api(any(Request.class))).willReturn(res);
-        this.service.setClient(this.sg);
 
         String[] ss = { "", "", "" };
         List<String[]> strs = new ArrayList<>();
         strs.add(ss);
 
-        this.service.sendVTaskErrorsNotification(strs);
+        this.mailServ.sendVTaskErrorsNotification(strs);
 
-        assertThat(this.service.buildMailBody(strs)).isNotNull();
-        verify(sg).api(any(Request.class));
+        assertThat(this.mailServ.buildMailBody(strs)).isNotNull();
+        verify(this.sg).api(any(Request.class));
+    }
+
+    @Test
+    void sendAppTerminatedNotificationSendsEmailViaSendgridClient() throws IOException {
+        Response res = mock(Response.class);
+        given(res.getStatusCode()).willReturn(200);
+        given(res.getBody()).willReturn("");
+        given(this.sg.api(any(Request.class))).willReturn(res);
+
+        this.mailServ.sendAppTerminatedNotification("");
+
+        verify(this.sg).api(any(Request.class));
     }
 
     @Test
     void whenSendVTaskErrorsNotificationFailsToSendEmailErrorIsLogged() throws IOException {
         given(this.sg.api(any(Request.class))).willThrow(IOException.class);
-        this.service.setClient(this.sg);
 
         Logger logger = mock(Logger.class);
-        this.service.setLogger(logger);
+        this.mailServ.setLogger(logger);
 
-        assertThrows(ConnectIOException.class, () -> this.service.sendVTaskErrorsNotification(Collections.emptyList()));
+        assertThrows(ConnectIOException.class, () -> this.mailServ.sendVTaskErrorsNotification(Collections.emptyList()));
         verify(logger).error(anyString());
     }
 
     @Test
     void whenFromToAndApiKeyAreNullIsValidConfigReturnsFalse() {
-        assertThat(this.service.isValidConfig()).isFalse();
+        given(this.env.getProperty(anyString())).willReturn(null);
+
+        assertThat(this.mailServ.isValidConfig()).isFalse();
     }
 
-        @Test
+    @Test
     void whenFromToOrApiKeyAreEmptyIsValidConfigReturnsFalse() {
-        this.service.setEnv(this.env);
+        given(this.env.getProperty(anyString())).willReturn("apiKey");
+        this.mailServ.setFrom("");
+        this.mailServ.setTo("b@b.com");
+        assertThat(this.mailServ.isValidConfig()).isFalse();
 
         given(this.env.getProperty(anyString())).willReturn("apiKey");
-        this.service.setFrom("");
-        this.service.setTo("b@b.com");
-        assertThat(this.service.isValidConfig()).isFalse();
-
-        given(this.env.getProperty(anyString())).willReturn("apiKey");
-        this.service.setFrom("a@a.com");
-        this.service.setTo("");
-        assertThat(this.service.isValidConfig()).isFalse();
+        this.mailServ.setFrom("a@a.com");
+        this.mailServ.setTo("");
+        assertThat(this.mailServ.isValidConfig()).isFalse();
 
         given(this.env.getProperty(anyString())).willReturn("");
-        this.service.setFrom("a@a.com");
-        this.service.setTo("b@b.com");
-        assertThat(this.service.isValidConfig()).isFalse();
+        this.mailServ.setFrom("a@a.com");
+        this.mailServ.setTo("b@b.com");
+        assertThat(this.mailServ.isValidConfig()).isFalse();
     }
 
     @Test
     void whenFromToAndApiKeyAreNotEmptyOrNullIsValidConfigReturnsTrue() {
-        this.service.setEnv(this.env);
         given(this.env.getProperty(anyString())).willReturn("apiKey");
-        this.service.setFrom("a@a.com");
-        this.service.setTo("b@b.com");
+        this.mailServ.setFrom("a@a.com");
+        this.mailServ.setTo("b@b.com");
 
-        assertThat(this.service.isValidConfig()).isTrue();
+        assertThat(this.mailServ.isValidConfig()).isTrue();
     }
 }
