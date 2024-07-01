@@ -26,9 +26,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class EmailNotificationServiceTests {
-    SendGrid sg = mock(SendGrid.class);
-    Environment env = mock(Environment.class);
-    EmailNotificationService mailServ;
+    private final SendGrid sg = mock(SendGrid.class);
+    private final Environment env = mock(Environment.class);
+    private EmailNotificationService mailServ;
 
     @BeforeEach
     void setUp() {

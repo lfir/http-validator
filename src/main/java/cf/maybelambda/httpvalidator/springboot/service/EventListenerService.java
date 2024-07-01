@@ -16,17 +16,19 @@ public class EventListenerService {
     @Autowired
     private EmailNotificationService mailServ;
 
-    private String getCurrentDateTime() { return OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME); }
+    private static String getCurrentDateTime() { return OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME); }
 
     @EventListener(ApplicationReadyEvent.class)
     public void setAppStartTime() {
-        this.startTime = this.getCurrentDateTime();
+        this.startTime = getCurrentDateTime();
     }
 
     @EventListener(ContextClosedEvent.class)
     public void notifyThatAppTerminated() throws ConnectIOException {
-        this.mailServ.sendAppTerminatedNotification(this.getCurrentDateTime());
+        this.mailServ.sendAppTerminatedNotification(getCurrentDateTime());
     }
 
     public String getStartTime() { return this.startTime; }
+
+    void setNotificationService(EmailNotificationService service) { this.mailServ = service; }
 }

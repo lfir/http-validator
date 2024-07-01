@@ -5,10 +5,7 @@ import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.ActiveProfiles;
 
 import javax.management.modelmbean.XMLParseException;
 import java.net.URI;
@@ -31,8 +28,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
-@ActiveProfiles("test")
 public class ValidationServiceTests {
     private final HttpResponse<String> res = mock(HttpResponse.class);
     private final EmailNotificationService ns = mock(EmailNotificationService.class);
@@ -42,11 +37,11 @@ public class ValidationServiceTests {
     private final List<ValidationTask> tasks = new ArrayList<>();
     private final HttpRequest req = mock(HttpRequest.class);
     private final Environment env = mock(Environment.class);
-    @Autowired
     private ValidationService vs;
 
     @BeforeEach
     void setUp() {
+        this.vs = new ValidationService();
         this.vs.setClient(this.cl);
         this.vs.setNotificationService(this.ns);
         this.vs.setTaskReader(this.dao);
