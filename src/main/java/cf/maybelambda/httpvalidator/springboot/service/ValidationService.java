@@ -64,7 +64,6 @@ public class ValidationService {
         int[] taskCounts = new int[4];
         List<HttpRequest> reqs = new ArrayList<>();
         List<ValidationTask> tasks = this.taskReader.getAll();
-        taskCounts[0] = tasks.size();
         for (ValidationTask task : tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
@@ -108,6 +107,7 @@ public class ValidationService {
         if (failures.size() > 0) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
+        taskCounts[0] = tasks.size();
         taskCounts[2] = failures.size();
         this.lrTaskCounts = taskCounts;
         this.lrStartDateTime = startDT;

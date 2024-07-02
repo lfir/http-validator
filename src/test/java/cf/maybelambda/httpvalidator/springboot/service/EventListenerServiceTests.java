@@ -24,7 +24,7 @@ public class EventListenerServiceTests {
     void afterAppStartsStartTimeVariableIsNotNull() {
         this.eventServ.setAppStartTime();
 
-        assertThat(this.eventServ.getStartTime()).isNotNull();
+        assertThat(this.eventServ.getStartDateTime()).isNotNull();
     }
 
     @Test

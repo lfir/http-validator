@@ -50,7 +50,7 @@ public class AppInfoController {
     public ResponseEntity<Map<String, String>> informWebAppStatus() {
         Map<String, String> res = new HashMap<>();
 
-        res.put(START_TIME_KEY, eventServ.getStartTime());
+        res.put(START_TIME_KEY, eventServ.getStartDateTime());
 
         String dataFileStatus = OK_VALUE;
         try {

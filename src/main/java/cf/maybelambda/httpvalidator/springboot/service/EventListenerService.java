@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class EventListenerService {
-    private String startTime;
+    private String startDateTime;
     @Autowired
     private EmailNotificationService mailServ;
 
@@ -20,7 +20,7 @@ public class EventListenerService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void setAppStartTime() {
-        this.startTime = getCurrentDateTime();
+        this.startDateTime = getCurrentDateTime();
     }
 
     @EventListener(ContextClosedEvent.class)
@@ -28,7 +28,7 @@ public class EventListenerService {
         this.mailServ.sendAppTerminatedNotification(getCurrentDateTime());
     }
 
-    public String getStartTime() { return this.startTime; }
+    public String getStartDateTime() { return this.startDateTime; }
 
     void setNotificationService(EmailNotificationService service) { this.mailServ = service; }
 }

@@ -43,7 +43,7 @@ class AppInfoControllerTests {
 
     @Test
     void informWebAppStatusReturns200AndJSONStatusDataWhenNoInitErrors() throws Exception {
-        given(this.eventServ.getStartTime()).willReturn("2001");
+        given(this.eventServ.getStartDateTime()).willReturn("2001");
 
         this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
             .andExpect(status().isOk())
