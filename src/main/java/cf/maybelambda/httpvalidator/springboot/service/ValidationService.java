@@ -59,8 +59,8 @@ public class ValidationService {
 
     @Scheduled(cron = "${cron.expression}")
     public void execValidations() throws ConnectIOException, XMLParseException {
-        this.lrStart = Instant.now();
-        this.lrStartDateTime = EventListenerService.getCurrentDateTime();
+        Instant start = Instant.now();
+        String startDT = EventListenerService.getCurrentDateTime();
         int[] taskCounts = new int[4];
         List<HttpRequest> reqs = new ArrayList<>();
         List<ValidationTask> tasks = this.taskReader.getAll();
@@ -110,6 +110,8 @@ public class ValidationService {
         }
         taskCounts[2] = failures.size();
         this.lrTaskCounts = taskCounts;
+        this.lrStartDateTime = startDT;
+        this.lrStart = start;
         this.lrEnd = Instant.now();
     }
 
