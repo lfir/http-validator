@@ -16,7 +16,7 @@ public class EventListenerService {
     @Autowired
     private EmailNotificationService mailServ;
 
-    private static String getCurrentDateTime() { return OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME); }
+    public static String getCurrentDateTime() { return OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME); }
 
     @EventListener(ApplicationReadyEvent.class)
     public void setAppStartTime() {

@@ -16,8 +16,15 @@ import java.rmi.ConnectIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
 import static cf.maybelambda.httpvalidator.springboot.service.ValidationService.HEADER_KEY_VALUE_DELIMITER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -142,5 +149,32 @@ public class ValidationServiceTests {
         given(this.env.getProperty(anyString())).willReturn(null);
 
         assertThat(this.vs.isValidConfig()).isFalse();
+    }
+
+    @Test
+    void whenLrEndIsNullGetLastRunInfoReturnsEmptyMap() {
+        assertThat(this.vs.getLastRunInfo()).isEmpty();
+    }
+
+    @Test
+    void whenLrEndIsNotNullGetLastRunInfoReturnsLastRunData() throws XMLParseException, ConnectIOException {
+        given(this.res.body()).willReturn("");
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .willReturn(CompletableFuture.completedFuture(this.res));
+
+        this.tasks.add(new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, ""));
+        given(this.dao.getAll()).willReturn(this.tasks);
+
+        this.vs.execValidations();
+
+        Map<String, String> res = this.vs.getLastRunInfo();
+
+        assertThat(res.containsKey(START_TIME_KEY)).isTrue();
+        assertThat(res.containsKey(TIME_ELAPSED_KEY)).isTrue();
+        assertThat(res.containsKey(TASKS_TOTAL_KEY)).isTrue();
+        assertThat(res.containsKey(TASKS_OK_KEY)).isTrue();
+        assertThat(res.containsKey(TASKS_FAILED_KEY)).isTrue();
+        assertThat(res.containsKey(TASKS_ERRORS_KEY)).isTrue();
+        assertThat(res.get(TASKS_TOTAL_KEY)).isEqualTo(String.valueOf(1));
     }
 }

@@ -12,12 +12,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.management.modelmbean.XMLParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.CONFIG_STATUS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.DATAFILE_STATUS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.NO_LASTRUN_DATA_ERROR_MSG;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.OK_VALUE;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -74,6 +78,29 @@ class AppInfoControllerTests {
 
         this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
             .andExpect(jsonPath("$." + CONFIG_STATUS_KEY).value(OK_VALUE)
+        );
+    }
+
+    @Test
+    void informLastRunDataReturns503ServiceUnavailableWhenNoLastRunDataIsAvailable() throws Exception {
+        Map<String, String> res = new HashMap<>();
+        given(this.valServ.getLastRunInfo()).willReturn(res);
+
+        this.mockMvc.perform(get(AppInfoController.LAST_RUN_ENDPOINT))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$." + ERROR_VALUE.toLowerCase()).value(NO_LASTRUN_DATA_ERROR_MSG)
+        );
+    }
+
+    @Test
+    void informLastRunDataReturnsLastRunInfoWhenAvailable() throws Exception {
+        Map<String, String> res = new HashMap<>();
+        res.put(TIME_ELAPSED_KEY, "25");
+        given(this.valServ.getLastRunInfo()).willReturn(res);
+
+        this.mockMvc.perform(get(AppInfoController.LAST_RUN_ENDPOINT))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$." + TIME_ELAPSED_KEY).value("25")
         );
     }
 }

@@ -17,16 +17,31 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.rmi.ConnectIOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
+
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
+import static java.util.Objects.nonNull;
 
 @Service
 public class ValidationService {
     public static final String HEADER_KEY_VALUE_DELIMITER = "|";
     private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);
+    private Instant lrStart;
+    private Instant lrEnd;
+    private String lrStartDateTime;
+    private int[] lrTaskCounts;
     private HttpClient client;
     private static Logger logger = LoggerFactory.getLogger(ValidationService.class);
     @Autowired
@@ -44,8 +59,12 @@ public class ValidationService {
 
     @Scheduled(cron = "${cron.expression}")
     public void execValidations() throws ConnectIOException, XMLParseException {
+        this.lrStart = Instant.now();
+        this.lrStartDateTime = EventListenerService.getCurrentDateTime();
+        int[] taskCounts = new int[4];
         List<HttpRequest> reqs = new ArrayList<>();
         List<ValidationTask> tasks = this.taskReader.getAll();
+        taskCounts[0] = tasks.size();
         for (ValidationTask task : tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
@@ -68,6 +87,7 @@ public class ValidationService {
             resps = combinedFutures.get();
         } catch (InterruptedException | ExecutionException e) {
             logger.error("HTTPClient's request for the validation task could not be completed.", e);
+            taskCounts[3]++;
         }
 
         List<String[]> failures = new ArrayList<>();
@@ -81,12 +101,30 @@ public class ValidationService {
                 logmsg += "FAILURE";
             } else {
                 logmsg += "OK";
+                taskCounts[1]++;
             }
             logger.info(logmsg + " for: {}", task.reqURL());
         }
         if (failures.size() > 0) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
+        taskCounts[2] = failures.size();
+        this.lrTaskCounts = taskCounts;
+        this.lrEnd = Instant.now();
+    }
+
+    public Map<String, String> getLastRunInfo() {
+        Map<String, String> res = new HashMap<>();
+        if (nonNull(this.lrEnd)) {
+            res.put(START_TIME_KEY, this.lrStartDateTime);
+            res.put(TIME_ELAPSED_KEY, String.valueOf(Duration.between(this.lrStart, this.lrEnd).getSeconds()));
+            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));
+            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));
+            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));
+            res.put(TASKS_ERRORS_KEY, String.valueOf(this.lrTaskCounts[3]));
+        }
+
+        return res;
     }
 
     public boolean isValidConfig() {
