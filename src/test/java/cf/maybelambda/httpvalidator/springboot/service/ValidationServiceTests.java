@@ -4,6 +4,9 @@ import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 
@@ -123,32 +126,19 @@ public class ValidationServiceTests {
         verify(this.logger).info(anyString(), anyString());
     }
 
-    @Test
-    void whenDashCronExpressionIsValidConfigReturnsTrue() {
-        given(this.env.getProperty(anyString())).willReturn("-");
+    @ParameterizedTest
+    @ValueSource(strings = {"-", "@daily"})
+    void whenDashOrDailyMacroCronExpressionIsValidConfigReturnsTrue(String s) {
+        given(this.env.getProperty(anyString())).willReturn(s);
 
         assertThat(this.vs.isValidConfig()).isTrue();
     }
 
-    @Test
-    void whenDailyMacroCronExpressionIsValidConfigReturnsTrue() {
-        given(this.env.getProperty(anyString())).willReturn("@daily");
-
-        assertThat(this.vs.isValidConfig()).isTrue();
-    }
-
-    @Test
-    void whenInvalidCronExpressionIsValidConfigReturnsFalse() {
-        given(this.env.getProperty(anyString())).willReturn("*");
-
-        assertThat(this.vs.isValidConfig()).isFalse();
-    }
-
-    @Test
-    void whenNullCronExpressionIsValidConfigReturnsFalse() {
-        given(this.env.getProperty(anyString())).willReturn(null);
-
-        assertThat(this.vs.isValidConfig()).isFalse();
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"*"})
+    void whenInvalidCronExpressionIsValidConfigReturnsFalse(String s) {
+        assertThat(this.vs.isValidCronExpression(s)).isFalse();
     }
 
     @Test

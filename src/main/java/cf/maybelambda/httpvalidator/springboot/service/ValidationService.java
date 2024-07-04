@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
+import static cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp.RUN_SCHEDULE_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
@@ -57,7 +58,7 @@ public class ValidationService {
             .followRedirects(HttpClient.Redirect.ALWAYS).build();
     }
 
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
     public void execValidations() throws ConnectIOException, XMLParseException {
         Instant start = Instant.now();
         String startDT = EventListenerService.getCurrentDateTime();
@@ -130,12 +131,15 @@ public class ValidationService {
     }
 
     public boolean isValidConfig() {
+        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));
+    }
+
+    public boolean isValidCronExpression(String cronExpr) {
         boolean ans = true;
-        String expr = this.env.getProperty("cron.expression");
-        try {
-            CronExpression.parse(expr);
-        } catch (IllegalArgumentException e) {
-            if (!"-".equals(expr)) {
+        if (!"-".equals(cronExpr)) {
+            try {
+                CronExpression.parse(cronExpr);
+            } catch (IllegalArgumentException e) {
                 ans = false;
             }
         }

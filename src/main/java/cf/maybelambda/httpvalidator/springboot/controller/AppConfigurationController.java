@@ -1,0 +1,43 @@
+package cf.maybelambda.httpvalidator.springboot.controller;
+
+import cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp;
+import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
+
+@RestController
+@CrossOrigin
+public class AppConfigurationController {
+    static final String UPD_RUN_SCHEDULE_ENDPOINT = "/api/validator/runschedule";
+    static final String CRON_EXPRESSION_KEY = "cron_expression";
+    static final String INVALID_CRON_EXPRESSION_ERROR_MSG = "Invalid Cron Expression.";
+    @Autowired
+    private ValidationService valServ;
+
+    @PutMapping(UPD_RUN_SCHEDULE_ENDPOINT)
+    public ResponseEntity<Map<String, String>> updateValidatorRunSchedule(@RequestBody Map<String, String> body) {
+        ResponseEntity<Map<String, String>> res;
+        String expr = body.get(CRON_EXPRESSION_KEY);
+
+        if (this.valServ.isValidCronExpression(expr)) {
+            HTTPValidatorWebApp.restartAppContextWithNewRunSchedule(expr);
+            res = ResponseEntity.ok(null);
+        } else {
+            Map<String, String> resBody = new HashMap<>();
+            resBody.put(ERROR_VALUE.toLowerCase(), INVALID_CRON_EXPRESSION_ERROR_MSG);
+            res = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resBody);
+        }
+
+        return res;
+    }
+}
