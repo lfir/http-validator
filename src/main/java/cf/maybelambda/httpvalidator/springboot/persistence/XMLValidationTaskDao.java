@@ -1,11 +1,13 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
+import io.micrometer.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -19,7 +21,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +41,7 @@ public class XMLValidationTaskDao {
     static final String RES_BODY_ATTR = "resbody";
     private static final String SCHEMA_FILENAME = "validations.xsd";
     @Value("${datafile}")
-    private String DATAFILE_PATH;
+    private String dataFilePath;
     private DocumentBuilder xmlParser;
     private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
 
@@ -55,7 +61,7 @@ public class XMLValidationTaskDao {
         this.xmlParser.setErrorHandler(xsdErrorHandler);
     }
 
-    public List<ValidationTask> getAll() throws XMLParseException {
+    public List<ValidationTask> getAll() throws XMLParseException, FileNotFoundException {
         List<ValidationTask> tasks = new ArrayList<>();
         NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
 
@@ -64,7 +70,7 @@ public class XMLValidationTaskDao {
             ValidationTask v = new ValidationTask(
                 Integer.parseInt(nm.getNamedItem(REQ_METHOD_ATTR).getTextContent()),
                 nm.getNamedItem(REQ_URL_ATTR).getTextContent(),
-                Arrays.stream(nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(HEADER_DELIMITER)).filter(h -> !h.isEmpty()).toList(),
+                Arrays.stream(nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(HEADER_DELIMITER)).filter(StringUtils::isNotEmpty).toList(),
                 Integer.parseInt(nm.getNamedItem(RES_SC_ATTR).getTextContent()),
                 nm.getNamedItem(RES_BODY_ATTR).getTextContent()
             );
@@ -74,12 +80,34 @@ public class XMLValidationTaskDao {
         return tasks;
     }
 
-    public Document getDocData() throws XMLParseException {
+    public boolean isDataFileStatusOk() {
+        Path path = Path.of(this.dataFilePath);
+        return Files.isRegularFile(path) && Files.isReadable(path);
+    }
+
+    public synchronized void updateDataFile(MultipartFile file) throws IOException, XMLParseException {
         try {
-            return this.xmlParser.parse(new FileInputStream(DATAFILE_PATH));
-        } catch (NullPointerException | IOException | SAXException e) {
-            String errmsg = "Failed to parse datafile at: " + DATAFILE_PATH;
-            logger.error(errmsg);
+            this.parseXMLInput(file.getInputStream());
+            Files.write(Path.of(this.dataFilePath), file.getBytes());
+        } catch (NullPointerException | XMLParseException e) {
+            logger.warn("Invalid EXTERNAL XML received from API");
+            throw e;
+        } catch (IOException e) {
+            logger.error("Failed writing new datafile to disk", e);
+            throw e;
+        }
+    }
+
+    synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
+        return this.parseXMLInput(new FileInputStream(this.dataFilePath));
+    }
+
+    Document parseXMLInput(InputStream inputStream) throws XMLParseException {
+        try {
+            return this.xmlParser.parse(inputStream);
+        } catch (Exception e) {
+            String errmsg = "Failed to parse target XML content";
+            logger.error(errmsg, e);
             throw new XMLParseException(e, errmsg + "\n");
         }
     }
@@ -87,4 +115,6 @@ public class XMLValidationTaskDao {
     void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }
 
     void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }
+
+    void setDataFilePath(String dataFilePath) { this.dataFilePath = dataFilePath; }
 }

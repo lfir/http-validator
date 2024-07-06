@@ -11,7 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.management.modelmbean.XMLParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,8 +52,17 @@ class AppInfoControllerTests {
     }
 
     @Test
-    void informWebAppStatusReturnsDataFileErrorStatusWhenParserThrowsException() throws Exception {
-        given(this.dao.getDocData()).willThrow(XMLParseException.class);
+    void informWebAppStatusReturnsDataFileStatusOkWhenParserInformsStatustOk() throws Exception {
+        given(this.dao.isDataFileStatusOk()).willReturn(true);
+
+        this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
+            .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(OK_VALUE)
+        );
+    }
+
+    @Test
+    void informWebAppStatusReturnsDataFileErrorStatusWhenParserInformsStatusNotOk() throws Exception {
+        given(this.dao.isDataFileStatusOk()).willReturn(false);
 
         this.mockMvc.perform(get(AppInfoController.STATUS_ENDPOINT))
             .andExpect(jsonPath("$." + DATAFILE_STATUS_KEY).value(ERROR_VALUE)

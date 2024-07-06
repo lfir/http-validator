@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.management.modelmbean.XMLParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +23,7 @@ public class AppInfoController {
     public static final String TASKS_OK_KEY = "tasks_ok";
     public static final String TASKS_FAILED_KEY = "tasks_failed";
     public static final String TASKS_ERRORS_KEY = "tasks_errors";
-    static final String NO_LASTRUN_DATA_ERROR_MSG = "No validation tasks have been completed yet.";
+    static final String NO_LASTRUN_DATA_ERROR_MSG = "No validation tasks have been completed yet";
     static final String STATUS_ENDPOINT = "/api/status";
     static final String LAST_RUN_ENDPOINT = "/api/validator/lastrun";
     static final String ERROR_VALUE = "ERROR";
@@ -52,13 +51,7 @@ public class AppInfoController {
 
         res.put(START_TIME_KEY, eventServ.getStartDateTime());
 
-        String dataFileStatus = OK_VALUE;
-        try {
-            this.dao.getDocData();
-        } catch (XMLParseException e) {
-            dataFileStatus = ERROR_VALUE;
-        }
-        res.put(DATAFILE_STATUS_KEY, dataFileStatus);
+        res.put(DATAFILE_STATUS_KEY, this.dao.isDataFileStatusOk() ? OK_VALUE : ERROR_VALUE);
 
         res.put(
             CONFIG_STATUS_KEY,

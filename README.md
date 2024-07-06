@@ -6,17 +6,23 @@
 
 ### Main features
 
-- Executes HTTP requests periodically and performs some basic checks on the response data ("validation tasks").
-- Reads task information from an XML file that can be updated independently of the application code 
-(restart not needed either).
+- Executes HTTP requests periodically and performs some basic checks on the response data 
+("validation tasks").
+
+- Reads task information from an XML file that can be updated independently of the application code,
+directly or via Web API (app restart not needed).
 - Sends email notifications about invalid results (using [Sendgrid](https://sendgrid.com)'s service).
+- Run schedule can also be set through the API and a separate configuration file. 
+In the second case restarting the application manually after a change is also required.
 
 ### Notes
 
-- Run schedule can also be set through a separate configuration file (restart required).
-- Header values can contain spaces (i.e. for User-Agent).
+- Header values in the XML can contain unescaped spaces (i.e. for User-Agent).
+- When run schedule is updated from the API WebApplicationContext is restarted automatically to begin 
+using it (PID remains the same).
 
 Next steps:
 
-- Offer some  basic processing statistics and updating the XML with the tasks through the web API
+- API docs
 - Sending POST requests
+- API auth

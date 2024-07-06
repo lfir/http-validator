@@ -11,6 +11,7 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import javax.management.modelmbean.XMLParseException;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -59,7 +60,7 @@ public class ValidationService {
     }
 
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
-    public void execValidations() throws ConnectIOException, XMLParseException {
+    public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException {
         Instant start = Instant.now();
         String startDT = EventListenerService.getCurrentDateTime();
         int[] taskCounts = new int[4];
@@ -86,7 +87,7 @@ public class ValidationService {
         try {
             resps = combinedFutures.get();
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("HTTPClient's request for the validation task could not be completed.", e);
+            logger.error("HTTPClient's request for the validation task could not be completed", e);
             taskCounts[3]++;
         }
 
