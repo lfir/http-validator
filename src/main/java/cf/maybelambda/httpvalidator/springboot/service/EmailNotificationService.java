@@ -10,7 +10,6 @@ import com.sendgrid.helpers.mail.objects.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -21,24 +20,20 @@ import java.util.List;
 
 import static io.micrometer.common.util.StringUtils.isBlank;
 import static io.micrometer.common.util.StringUtils.truncate;
+import static java.util.Objects.isNull;
 
 @Service
 public class EmailNotificationService {
     static final String BODY_LINE1 = "Request URL: ";
     static final String BODY_LINE2 = "Response Status Code: ";
     static final String BODY_LINE3 = "Response body: ";
-    @Value("${notifications.from}")
-    private String from;
-    @Value("${notifications.to}")
-    private String to;
+    static final String APIKEY_PROPERTY = "sendgrid.apikey";
+    static final String FROM_PROPERTY = "notifications.from";
+    static final String TO_PROPERTY = "notifications.to";
     private SendGrid client;
     private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
     @Autowired
     private Environment env;
-
-    public EmailNotificationService(@Value("${sendgrid.apikey}") String apikey) {
-        this.client = new SendGrid(apikey);
-    }
 
     String buildMailBody(List<String[]> contents) {
         String res = "";
@@ -53,9 +48,9 @@ public class EmailNotificationService {
     }
 
     void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
-        Email from = new Email(this.from);
+        Email from = new Email(this.getFrom());
         from.setName("Chronos Maybelambda");
-        Email to = new Email(this.to);
+        Email to = new Email(this.getTo());
         Content content = new Content("text/plain", body);
         Mail mail = new Mail(from, subject, to, content);
 
@@ -64,6 +59,7 @@ public class EmailNotificationService {
         request.setEndpoint("mail/send");
         try {
             request.setBody(mail.build());
+            if (isNull(this.client)) { this.client = new SendGrid(this.getApiKey()); }
             Response res = this.client.api(request);
             logger.info("Email delivery result: Status Code: {}", res.getStatusCode() + " - Body: " + res.getBody());
         } catch (IOException e) {
@@ -88,16 +84,18 @@ public class EmailNotificationService {
     }
 
     public boolean isValidConfig() {
-        return !(isBlank(this.from) || isBlank(this.to) || isBlank(this.env.getProperty("sendgrid.apikey")));
+        return !(isBlank(this.getFrom()) || isBlank(this.getTo()) || isBlank(this.getApiKey()));
     }
+
+    private String getApiKey() { return this.env.getProperty(APIKEY_PROPERTY); }
+
+    String getFrom() { return this.env.getProperty(FROM_PROPERTY); }
+
+    String getTo() { return this.env.getProperty(TO_PROPERTY); }
 
     void setClient(SendGrid sg) { this.client = sg; }
 
     void setLogger(Logger logger) { EmailNotificationService.logger = logger; }
 
     void setEnv(Environment env) { this.env = env; }
-
-    void setFrom(String from) { this.from = from; }
-
-    void setTo(String to) { this.to = to; }
 }
