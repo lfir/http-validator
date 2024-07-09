@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
+import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.DATAFILE_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.HEADER_DELIMITER;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.REQ_HEADERS_ATTR;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.REQ_METHOD_ATTR;
@@ -48,6 +50,7 @@ public class XMLValidationTaskDaoTests {
     private final Node nodeB = mock(Node.class);
     private final Node validationNode = mock(Node.class);
     private final NamedNodeMap nm = mock(NamedNodeMap.class);
+    private final Environment env = mock(Environment.class);
     private XMLValidationTaskDao taskDao;
 
     @BeforeEach
@@ -55,8 +58,9 @@ public class XMLValidationTaskDaoTests {
         this.taskDao = new XMLValidationTaskDao();
         this.taskDao.setXmlParser(this.xmlParser);
         this.taskDao.setLogger(logger);
-        this.taskDao.setDataFilePath("/dev/null");
+        this.taskDao.setEnv(this.env);
 
+        given(this.env.getProperty(DATAFILE_PROPERTY)).willReturn("/dev/null");
         given(this.nodes.item(anyInt())).willReturn(this.validationNode);
         given(validationNode.getAttributes()).willReturn(this.nm);
 

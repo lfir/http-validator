@@ -4,7 +4,8 @@ import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import io.micrometer.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 @Component
 public class XMLValidationTaskDao {
     static final String VALIDATION_TAG = "validation";
@@ -39,11 +42,12 @@ public class XMLValidationTaskDao {
     static final String HEADER_DELIMITER = "\u0009";
     static final String RES_SC_ATTR = "ressc";
     static final String RES_BODY_ATTR = "resbody";
+    static final String DATAFILE_PROPERTY = "datafile";
     private static final String SCHEMA_FILENAME = "validations.xsd";
-    @Value("${datafile}")
-    private String dataFilePath;
     private DocumentBuilder xmlParser;
     private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
+    @Autowired
+    private Environment env;
 
     public XMLValidationTaskDao() throws ParserConfigurationException, SAXException, IOException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -59,6 +63,35 @@ public class XMLValidationTaskDao {
 
         XMLErrorHandler xsdErrorHandler = new XMLErrorHandler();
         this.xmlParser.setErrorHandler(xsdErrorHandler);
+    }
+
+    Path getDataFilePath() { return Path.of(requireNonNull(this.env.getProperty(DATAFILE_PROPERTY))); }
+
+    Document parseXMLInput(InputStream inputStream) throws XMLParseException {
+        try {
+            return this.xmlParser.parse(inputStream);
+        } catch (Exception e) {
+            String errmsg = "Failed to parse target XML content";
+            logger.error(errmsg, e);
+            throw new XMLParseException(e, errmsg + "\n");
+        }
+    }
+
+    public synchronized void updateDataFile(MultipartFile file) throws IOException, NullPointerException, XMLParseException {
+        try {
+            this.parseXMLInput(file.getInputStream());
+            Files.write(this.getDataFilePath(), file.getBytes());
+        } catch (NullPointerException | XMLParseException e) {
+            logger.warn("Invalid EXTERNAL XML received from API");
+            throw e;
+        } catch (IOException e) {
+            logger.error("Failed writing new datafile to disk", e);
+            throw e;
+        }
+    }
+
+    synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
+        return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));
     }
 
     public List<ValidationTask> getAll() throws XMLParseException, FileNotFoundException {
@@ -81,40 +114,13 @@ public class XMLValidationTaskDao {
     }
 
     public boolean isDataFileStatusOk() {
-        Path path = Path.of(this.dataFilePath);
+        Path path = this.getDataFilePath();
         return Files.isRegularFile(path) && Files.isReadable(path);
-    }
-
-    public synchronized void updateDataFile(MultipartFile file) throws IOException, XMLParseException {
-        try {
-            this.parseXMLInput(file.getInputStream());
-            Files.write(Path.of(this.dataFilePath), file.getBytes());
-        } catch (NullPointerException | XMLParseException e) {
-            logger.warn("Invalid EXTERNAL XML received from API");
-            throw e;
-        } catch (IOException e) {
-            logger.error("Failed writing new datafile to disk", e);
-            throw e;
-        }
-    }
-
-    synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
-        return this.parseXMLInput(new FileInputStream(this.dataFilePath));
-    }
-
-    Document parseXMLInput(InputStream inputStream) throws XMLParseException {
-        try {
-            return this.xmlParser.parse(inputStream);
-        } catch (Exception e) {
-            String errmsg = "Failed to parse target XML content";
-            logger.error(errmsg, e);
-            throw new XMLParseException(e, errmsg + "\n");
-        }
     }
 
     void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }
 
     void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }
 
-    void setDataFilePath(String dataFilePath) { this.dataFilePath = dataFilePath; }
+    void setEnv(Environment env) { this.env = env; }
 }
