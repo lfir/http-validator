@@ -5,9 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -42,10 +39,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
-@ActiveProfiles("test")
 public class XMLValidationTaskDaoTests {
-    public final Logger logger = mock(Logger.class);
+    private final Logger logger = mock(Logger.class);
     private final DocumentBuilder xmlParser = mock(DocumentBuilder.class);
     private final Document doc = mock(Document.class);
     private final NodeList nodes = mock(NodeList.class);
@@ -53,13 +48,14 @@ public class XMLValidationTaskDaoTests {
     private final Node nodeB = mock(Node.class);
     private final Node validationNode = mock(Node.class);
     private final NamedNodeMap nm = mock(NamedNodeMap.class);
-    @Autowired
     private XMLValidationTaskDao taskDao;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        this.taskDao = new XMLValidationTaskDao();
         this.taskDao.setXmlParser(this.xmlParser);
         this.taskDao.setLogger(logger);
+        this.taskDao.setDataFilePath("/dev/null");
 
         given(this.nodes.item(anyInt())).willReturn(this.validationNode);
         given(validationNode.getAttributes()).willReturn(this.nm);
@@ -75,7 +71,7 @@ public class XMLValidationTaskDaoTests {
 
     @Test
     void xmlWithNoValidationTagsProducesZeroTasks() throws Exception {
-        given(doc.getElementsByTagName(anyString())).willReturn(this.nodes);
+        given(this.doc.getElementsByTagName(anyString())).willReturn(this.nodes);
         given(this.xmlParser.parse(any(InputStream.class))).willReturn(this.doc);
         given(this.nodes.getLength()).willReturn(0);
 
@@ -159,33 +155,30 @@ public class XMLValidationTaskDaoTests {
 
     @Test
     void updateDataFileThrowsIOExceptionWhenDataCannotBeWrittenToDestinationFile() throws Exception {
-        try (MockedStatic<Files> classMock = mockStatic(Files.class)) {
+        try (MockedStatic<Files> classMock = mockStatic(Files.class);
+             InputStream is = InputStream.nullInputStream()) {
             MultipartFile file = mock(MultipartFile.class);
-            InputStream is = InputStream.nullInputStream();
+
             given(file.getInputStream()).willReturn(is);
             given(file.getBytes()).willReturn(is.readAllBytes());
             classMock.when(() -> Files.write(any(Path.class), any(byte[].class))).thenThrow(IOException.class);
 
             assertThrows(IOException.class, () -> this.taskDao.updateDataFile(file));
             verify(logger).error(anyString(), any(Throwable.class));
-
-            is.close();
         }
     }
 
     @Test
     void updateDataFileWritesReceivedFileDataToDestinationFile() throws Exception {
+        try (InputStream is = InputStream.nullInputStream()) {
             MultipartFile file = mock(MultipartFile.class);
-            InputStream is = InputStream.nullInputStream();
             given(file.getInputStream()).willReturn(is);
             given(file.getBytes()).willReturn(is.readAllBytes());
-            this.taskDao.setDataFilePath("/dev/null");
 
             this.taskDao.updateDataFile(file);
 
             verify(file).getInputStream();
             verify(file).getBytes();
-
-            is.close();
+        }
     }
 }

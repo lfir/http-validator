@@ -19,10 +19,9 @@ In the second case restarting the application manually after a change is also re
 
 - Header values in the XML can contain unescaped spaces (i.e. for User-Agent).
 - When run schedule is updated from the API WebApplicationContext is restarted automatically to begin 
-using it (PID remains the same).
+using it (PID remains the same, beans & variables are re-initialized).
 
 Next steps:
 
 - API docs
 - Sending POST requests
-- API auth

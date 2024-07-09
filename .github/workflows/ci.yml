@@ -16,6 +16,7 @@ env:
   SENDGRID_APIKEY: ''
   NOTIF_FROM: ''
   NOTIF_TO: ''
+  JWT_SECRET: ''
 
 jobs:
   build:

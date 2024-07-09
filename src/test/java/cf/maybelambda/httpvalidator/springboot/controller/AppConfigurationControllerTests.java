@@ -2,6 +2,7 @@ package cf.maybelambda.httpvalidator.springboot.controller;
 
 import cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
+import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +24,9 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppConfiguratio
 import static cf.maybelambda.httpvalidator.springboot.controller.AppConfigurationController.INVALID_DATA_FILE_ERROR_MSG;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppConfigurationController.UPD_DATA_FILE_ENDPOINT;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppConfigurationController.UPD_DATA_FILE_ERROR_MSG;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppConfigurationController.UPD_RUN_SCHEDULE_ENDPOINT;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
+import static cf.maybelambda.httpvalidator.springboot.filter.JwtRequestFilter.AUTHORIZATION_HEADER_KEY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
@@ -42,11 +45,14 @@ public class AppConfigurationControllerTests {
     private ValidationService valServ;
     @MockBean
     private XMLValidationTaskDao dao;
+    @MockBean
+    private JwtAuthenticationService authServ;
     private final Map<String, String> reqBody = new HashMap<>();
 
     @BeforeEach
     public void setUp() {
         reqBody.put(CRON_EXPRESSION_KEY, "?");
+        given(this.authServ.isValidToken(anyString())).willReturn(true);
     }
 
     @Test
@@ -54,7 +60,8 @@ public class AppConfigurationControllerTests {
         given(this.valServ.isValidCronExpression(anyString())).willReturn(false);
 
         this.mockMvc.perform(
-            put(AppConfigurationController.UPD_RUN_SCHEDULE_ENDPOINT)
+            put(UPD_RUN_SCHEDULE_ENDPOINT)
+                .header(AUTHORIZATION_HEADER_KEY, "testToken")
                 .content(mapper.writeValueAsString(this.reqBody))
                 .contentType(MediaType.APPLICATION_JSON))
 
@@ -69,7 +76,8 @@ public class AppConfigurationControllerTests {
         given(this.valServ.isValidCronExpression(anyString())).willReturn(true);
 
         this.mockMvc.perform(
-            put(AppConfigurationController.UPD_RUN_SCHEDULE_ENDPOINT)
+            put(UPD_RUN_SCHEDULE_ENDPOINT)
+                .header(AUTHORIZATION_HEADER_KEY, "testToken")
                 .content(mapper.writeValueAsString(this.reqBody))
                 .contentType(MediaType.APPLICATION_JSON))
 
@@ -88,7 +96,8 @@ public class AppConfigurationControllerTests {
         doThrow(XMLParseException.class).when(this.dao).updateDataFile(null);
 
         this.mockMvc.perform(
-            put(UPD_DATA_FILE_ENDPOINT))
+            put(UPD_DATA_FILE_ENDPOINT)
+                .header(AUTHORIZATION_HEADER_KEY, "testToken"))
 
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$." + ERROR_VALUE.toLowerCase()).value(INVALID_DATA_FILE_ERROR_MSG)
@@ -100,7 +109,8 @@ public class AppConfigurationControllerTests {
         doThrow(IOException.class).when(this.dao).updateDataFile(null);
 
         this.mockMvc.perform(
-            put(UPD_DATA_FILE_ENDPOINT))
+            put(UPD_DATA_FILE_ENDPOINT)
+                .header(AUTHORIZATION_HEADER_KEY, "testToken"))
 
             .andExpect(status().isInternalServerError())
             .andExpect(jsonPath("$." + ERROR_VALUE.toLowerCase()).value(UPD_DATA_FILE_ERROR_MSG)
@@ -110,7 +120,8 @@ public class AppConfigurationControllerTests {
     @Test
     void updateValidatorDataFileReturns200WhenDataFileIsUpdated() throws Exception {
         this.mockMvc.perform(
-            put(UPD_DATA_FILE_ENDPOINT))
+            put(UPD_DATA_FILE_ENDPOINT)
+                .header(AUTHORIZATION_HEADER_KEY, "testToken"))
 
             .andExpect(status().isOk()
         );
