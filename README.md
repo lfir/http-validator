@@ -17,6 +17,8 @@ In the second case restarting the application manually after a change is also re
 
 ### Notes
 
+- At this stage of the project validation tasks can only send GET requests and validate responses with empty body or 
+discrete, text-only data like plaintext, CSV, HTML, JSON, etc.  
 - Header values in the XML can contain unescaped spaces (i.e. for User-Agent).
 - When run schedule is updated from the API WebApplicationContext is restarted automatically to begin 
 using it (PID remains the same, beans & variables are re-initialized).
