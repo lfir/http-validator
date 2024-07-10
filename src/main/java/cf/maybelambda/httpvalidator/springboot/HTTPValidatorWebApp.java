@@ -37,7 +37,5 @@ public class HTTPValidatorWebApp {
         thread.start();
     }
 
-    static void setContext(ConfigurableApplicationContext context) {
-        HTTPValidatorWebApp.context = context;
-    }
+    static void setContext(ConfigurableApplicationContext context) { HTTPValidatorWebApp.context = context; }
 }
