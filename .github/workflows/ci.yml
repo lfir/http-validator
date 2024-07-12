@@ -18,6 +18,7 @@ env:
   NOTIF_TO: ''
   JWT_SECRET: ''
 
+# Allow the workflow to publish_branch
 permissions:
   contents: write
 

@@ -8,22 +8,14 @@
 
 - Executes HTTP requests periodically and performs some basic checks on the response data 
 ("validation tasks").
-
-- Reads task information from an XML file that can be updated independently of the application code,
-directly or via Web API (app restart not needed).
+- Reads task information from a separate XML file.
 - Sends email notifications about invalid results (using [Sendgrid](https://sendgrid.com)'s service).
-- Run schedule can also be set through the API and a separate configuration file. 
-In the second case restarting the application manually after a change is also required.
 
-### Notes
+For more details check the following site:
 
-- At this stage of the project validation tasks can only send GET requests and validate responses with empty body or 
-discrete, text-only data like plaintext, CSV, HTML, JSON, etc.  
-- Header values in the XML can contain unescaped spaces (i.e. for User-Agent).
-- When run schedule is updated from the API WebApplicationContext is restarted automatically to begin 
-using it (PID remains the same, beans & variables are re-initialized).
+### [Usage guide & API reference](https://lfir.github.io/http-validator/api-guide.html)
 
-Next steps:
+### Next steps
 
 - API docs
 - Sending POST requests
