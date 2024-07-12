@@ -20,7 +20,7 @@ import static java.util.Objects.nonNull;
 
 @Service
 public class JwtAuthenticationService {
-    static final String BEARER_PREFIX = "Bearer ";
+    public static final String BEARER_PREFIX = "Bearer ";
     static final String SECRET_PROPERTY = "jwt.signing.secret";
     @Autowired
     private Environment env;
@@ -33,7 +33,7 @@ public class JwtAuthenticationService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(this.env.getProperty(SECRET_PROPERTY)));
     }
 
-    String getNewTokenValidFor(int hours) {
+    public String getNewTokenValidFor(int hours) {
         return Jwts.builder()
             .issuedAt(new Date())
             .expiration(Date.from(Instant.now().plus(Duration.ofHours(hours))))

@@ -23,13 +23,13 @@ public class AppInfoController {
     public static final String TASKS_OK_KEY = "tasks_ok";
     public static final String TASKS_FAILED_KEY = "tasks_failed";
     public static final String TASKS_ERRORS_KEY = "tasks_errors";
-    static final String NO_LASTRUN_DATA_ERROR_MSG = "No validation tasks have been completed yet";
-    static final String STATUS_ENDPOINT = "/api/status";
-    static final String LAST_RUN_ENDPOINT = "/api/validator/lastrun";
-    static final String ERROR_VALUE = "ERROR";
+    public static final String NO_LASTRUN_DATA_ERROR_MSG = "No validation tasks have been completed yet";
+    public static final String STATUS_ENDPOINT = "/api/status";
+    public static final String LAST_RUN_ENDPOINT = "/api/validator/lastrun";
+    public static final String ERROR_VALUE = "ERROR";
     static final String OK_VALUE = "OK";
-    static final String DATAFILE_STATUS_KEY = "datafile_status";
-    static final String CONFIG_STATUS_KEY = "config_status";
+    public static final String DATAFILE_STATUS_KEY = "datafile_status";
+    public static final String CONFIG_STATUS_KEY = "config_status";
     @Autowired
     private XMLValidationTaskDao dao;
     @Autowired
