@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.20">
 <meta name="author" content="by Asta86">
-<title>HTTP Validator - API Documentation</title>
+<title>HTTP Validator - Usage guide &amp; API reference</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -438,60 +438,365 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="book toc2 toc-left">
 <div id="header">
-<h1>HTTP Validator - API Documentation</h1>
+<h1>HTTP Validator - Usage guide &amp; API reference</h1>
 <div class="details">
 <span id="author" class="author">by Asta86</span><br>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_information_endpoints">1. Information endpoints</a>
+<li><a href="#_introduction">1. Introduction</a>
 <ul class="sectlevel2">
-<li><a href="#_application_status">1.1. Application Status</a>
+<li><a href="#_purpose">1.1. Purpose</a></li>
+<li><a href="#_features">1.2. Features</a></li>
+<li><a href="#_summary">1.3. Summary</a></li>
+</ul>
+</li>
+<li><a href="#_constructing_an_xml_file_for_validation_tasks">2. Constructing an XML File for Validation Tasks</a>
+<ul class="sectlevel2">
+<li><a href="#_steps_to_create_the_xml_file">2.1. Steps to create the XML file</a></li>
+<li><a href="#_example_xml_tasks">2.2. Example XML Tasks</a></li>
+<li><a href="#_explanation_of_examples">2.3. Explanation of Examples</a></li>
+</ul>
+</li>
+<li><a href="#_api_information_endpoints">3. API - Information endpoints</a>
+<ul class="sectlevel2">
+<li><a href="#_application_status">3.1. Application Status</a>
 <ul class="sectlevel3">
-<li><a href="#_request_structure">1.1.1. Request Structure</a></li>
-<li><a href="#_request_headers">1.1.2. Request Headers</a></li>
-<li><a href="#_response_structure">1.1.3. Response Structure</a></li>
-<li><a href="#_sample_response">1.1.4. Sample Response</a></li>
-<li><a href="#_curl_request">1.1.5. CURL request</a></li>
+<li><a href="#_request_structure">3.1.1. Request Structure</a></li>
+<li><a href="#_request_headers">3.1.2. Request Headers</a></li>
+<li><a href="#_response_structure">3.1.3. Response Structure</a></li>
+<li><a href="#_sample_response">3.1.4. Sample Response</a></li>
+<li><a href="#_curl_request">3.1.5. CURL request</a></li>
 </ul>
 </li>
-<li><a href="#_validation_tasks_last_run_data">1.2. Validation Tasks - Last Run data</a>
+<li><a href="#_validation_tasks_last_run_data">3.2. Validation Tasks - Last Run data</a>
 <ul class="sectlevel3">
-<li><a href="#_request_structure_2">1.2.1. Request Structure</a></li>
-<li><a href="#_request_headers_2">1.2.2. Request Headers</a></li>
-<li><a href="#_response_structure_2">1.2.3. Response Structure</a></li>
-<li><a href="#_sample_response_2">1.2.4. Sample Response</a></li>
-<li><a href="#_curl_request_2">1.2.5. CURL request</a></li>
+<li><a href="#_request_structure_2">3.2.1. Request Structure</a></li>
+<li><a href="#_request_headers_2">3.2.2. Request Headers</a></li>
+<li><a href="#_response_structure_2">3.2.3. Response Structure</a></li>
+<li><a href="#_sample_response_2">3.2.4. Sample Response</a></li>
+<li><a href="#_curl_request_2">3.2.5. CURL request</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li><a href="#_limitations_and_other_important_considerations">4. Limitations and other important considerations</a></li>
 </ul>
 </div>
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_information_endpoints"><a class="link" href="#_information_endpoints">1. Information endpoints</a></h2>
+<h2 id="_introduction"><a class="link" href="#_introduction">1. Introduction</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project aims to ensure the reliability and consistency of a web application or HTTP-accessible resource by performing
+automated checks on various web endpoints. It does this by periodically sending requests to these endpoints and validating
+the responses based on predefined criteria.</p>
+</div>
+<div class="sect2">
+<h3 id="_purpose"><a class="link" href="#_purpose">1.1. Purpose</a></h3>
+<div class="paragraph">
+<p>Automate the monitoring and validation of web application endpoints to quickly detect and respond to any issues.
+This can help maintain the integrity and performance of the web application, ensuring that it functions correctly and meets expected standards.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_features"><a class="link" href="#_features">1.2. Features</a></h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Automated Validation Tasks</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The system periodically sends HTTP requests to specified web endpoints.</p>
+</li>
+<li>
+<p>It checks the responses against predefined criteria to ensure they are correct and expected.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Configurable Task Management</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Validation tasks are defined in an XML file, which can be updated independently of the application code.</p>
+</li>
+<li>
+<p>This file can be modified either manually or through a web API, without needing to restart the application.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Notification System</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If any validation task detects an issue, the system sends an email notification.</p>
+</li>
+<li>
+<p>This ensures that responsible parties are alerted promptly to any problems.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Scheduling Flexibility</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The schedule for running validation tasks can be set through the API or a separate configuration file.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_summary"><a class="link" href="#_summary">1.3. Summary</a></h3>
+<div class="paragraph">
+<p>In essence, the HTTP Validator can provide a robust yet flexible solution for monitoring web application endpoints and content or systems reachable via HTTP.
+By automating the process of sending requests and validating responses, it helps ensure the application remains reliable and performant.
+The ability to configure tasks and schedules easily, combined with prompt email notifications for issues and low resource usage, makes it a practical tool
+for monitoring and maintaining application health.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_constructing_an_xml_file_for_validation_tasks"><a class="link" href="#_constructing_an_xml_file_for_validation_tasks">2. Constructing an XML File for Validation Tasks</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An XML file for defining validation tasks, which is used to specify the details of the tasks that the system will perform, follows a structured format.</p>
+</div>
+<div class="sect2">
+<h3 id="_steps_to_create_the_xml_file"><a class="link" href="#_steps_to_create_the_xml_file">2.1. Steps to create the XML file</a></h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Start with the Root Element</strong>: Begin your XML file with a root element called <code>validations</code>. This will contain all your individual validation tasks.</p>
+</li>
+<li>
+<p><strong>Add Validation Elements</strong>: Inside the <code>validations</code> element, you will add multiple <code>validation</code> elements. Each <code>validation</code> element represents a single task.</p>
+</li>
+<li>
+<p><strong>Specify Attributes for Each Task</strong>: For each <code>validation</code> element, you need to specify several attributes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>reqmethod</code>: The HTTP request method (use <code>0</code> for <code>GET</code> requests).</p>
+</li>
+<li>
+<p><code>requrl</code>: The URL to which the request will be sent (up to 2000 characters).</p>
+</li>
+<li>
+<p><code>reqheaders</code>: Any headers that should be included in the request. These should be formatted as <code>HeaderName|HeaderValue</code>,
+separated by tabs (<code>&amp;#9;</code>) if there are multiple headers (up to 4000 characters). Can be left empty for no headers.</p>
+</li>
+<li>
+<p><code>ressc</code>: The expected HTTP status code in the response.</p>
+</li>
+<li>
+<p><code>resbody</code>: The expected body of the response (up to 1000 characters).</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_xml_tasks"><a class="link" href="#_example_xml_tasks">2.2. Example XML Tasks</a></h3>
+<div class="paragraph">
+<p>Below are some examples of validation tasks in XML format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;validations&gt;
+    &lt;!-- Example Task 1 --&gt;
+    &lt;validation
+        reqmethod="0"
+        requrl="http://example.com/api/status"
+        reqheaders="Authorization|Bearer token4534354X.9+yjo&amp;#9;Accept|application/json"
+        ressc="200"
+        resbody="A string in a plaintext response" /&gt;
+
+    &lt;!-- Example Task 2 --&gt;
+    &lt;validation
+        reqmethod="0"
+        requrl="http://example.com/api/data"
+        reqheaders="Accept|application/json"
+        ressc="200"
+        resbody="&amp;quot;data&amp;quot;:&amp;quot;some JSON data&amp;quot;" /&gt;
+
+    &lt;!-- Example Task 3 --&gt;
+    &lt;validation
+        reqmethod="0"
+        requrl="http://example.com/api/health"
+        reqheaders=""
+        ressc="200"
+        resbody="&amp;quot;health&amp;quot;:87876854354" /&gt;
+
+    &lt;!-- Example Task 4 --&gt;
+    &lt;validation
+        reqmethod="0"
+        requrl="http://example.com/api/info"
+        reqheaders="Custom-Header|Header Value"
+        ressc="404"
+        resbody="" /&gt;
+&lt;/validations&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_explanation_of_examples"><a class="link" href="#_explanation_of_examples">2.3. Explanation of Examples</a></h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Example Task 1</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Request Method</strong>: <code>GET</code> (indicated by <code>reqmethod="0"</code>)</p>
+</li>
+<li>
+<p><strong>Request URL</strong>: <code><a href="http://example.com/api/status" class="bare">http://example.com/api/status</a></code></p>
+</li>
+<li>
+<p><strong>Request Headers</strong>: Two headers: <code>Authorization</code> with a bearer token and <code>Accept</code> with value <code>application/json</code>, separated by <code>&amp;#9;</code> (tab character)</p>
+</li>
+<li>
+<p><strong>Expected Status Code</strong>: <code>200</code></p>
+</li>
+<li>
+<p><strong>Expected Response Body</strong>: The string expected to be present in a plaintext response</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Example Task 2</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Request Method</strong>: <code>GET</code></p>
+</li>
+<li>
+<p><strong>Request URL</strong>: <code><a href="http://example.com/api/data" class="bare">http://example.com/api/data</a></code></p>
+</li>
+<li>
+<p><strong>Request Headers</strong>: One header: <code>Accept</code> with value <code>application/json</code></p>
+</li>
+<li>
+<p><strong>Expected Status Code</strong>: <code>200</code></p>
+</li>
+<li>
+<p><strong>Expected Response Body</strong>: <code>"data":"some JSON data"</code>
+<strong>Note:</strong></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&amp;quot; &lt;!-- Is the escape character code used for quotation marks --&gt;</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Example Task 3</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Request Method</strong>: <code>GET</code></p>
+</li>
+<li>
+<p><strong>Request URL</strong>: <code><a href="http://example.com/api/health" class="bare">http://example.com/api/health</a></code></p>
+</li>
+<li>
+<p><strong>Request Headers</strong>: No headers (indicated by empty value <code>""</code>)</p>
+</li>
+<li>
+<p><strong>Expected Status Code</strong>: <code>200</code></p>
+</li>
+<li>
+<p><strong>Expected Response Body</strong>: <code>"health":87876854354</code>
+<strong>Note:</strong></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&amp;quot; &lt;!-- Is the escape character code used for quotation marks --&gt;</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Example Task 4</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Request Method</strong>: <code>GET</code></p>
+</li>
+<li>
+<p><strong>Request URL</strong>: <code><a href="http://example.com/oldpath" class="bare">http://example.com/oldpath</a></code></p>
+</li>
+<li>
+<p><strong>Request Headers</strong>: One header: <code>Custom-Header</code> with value <code>Header Value</code>, separated by <code>|</code> (pipe character).
+Header values can contain unescaped spaces.</p>
+</li>
+<li>
+<p><strong>Expected Status Code</strong>: <code>404</code></p>
+</li>
+<li>
+<p><strong>Expected Response Body</strong>: Body contents are ignored (indicated by empty value <code>""</code>)</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>By following this structure, you can easily define multiple validation tasks in an XML file, which the system will use to
+perform automated checks on your web application endpoints.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_api_information_endpoints"><a class="link" href="#_api_information_endpoints">3. API - Information endpoints</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_application_status"><a class="link" href="#_application_status">1.1. Application Status</a></h3>
+<h3 id="_application_status"><a class="link" href="#_application_status">3.1. Application Status</a></h3>
 <div class="paragraph">
 <p>This endpoint provides the status of the web application, including start time, data file status, and configuration status.</p>
 </div>
 <div class="sect3">
-<h4 id="_request_structure"><a class="link" href="#_request_structure">1.1.1. Request Structure</a></h4>
+<h4 id="_request_structure"><a class="link" href="#_request_structure">3.1.1. Request Structure</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA4MTUwOTEsImV4cCI6MTcyMDgxODY5MX0.sWbDyuCKt1w8Xw4sDUL-PfuOOwLTHosg3x89iU18IN0jo8B5OgxL0U3qpOl1H8H3Xj6BxMdI68jQLZiGvu-6jw
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_request_headers"><a class="link" href="#_request_headers">1.1.2. Request Headers</a></h4>
+<h4 id="_request_headers"><a class="link" href="#_request_headers">3.1.2. Request Headers</a></h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -512,7 +817,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_response_structure"><a class="link" href="#_response_structure">1.1.3. Response Structure</a></h4>
+<h4 id="_response_structure"><a class="link" href="#_response_structure">3.1.3. Response Structure</a></h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -536,21 +841,21 @@ Host: localhost:8080</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>datafile_status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Possible values:</p>
-<p class="tableblock">OK: Data file status is okay, i.e. it exists and is readable</p>
-<p class="tableblock">ERROR: Data file status is not okay</p></td>
+<p class="tableblock"><code>OK</code>: Data file status is okay, i.e. it exists and is readable</p>
+<p class="tableblock"><code>ERROR</code>: Data file status is not okay</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>config_status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Possible values:</p>
-<p class="tableblock">OK: Both mail and validation configurations are okay (run schedule, credentials, from and to addresses)</p>
-<p class="tableblock">ERROR: Either mail or validation configuration is not okay</p></td>
+<p class="tableblock"><code>OK</code>: Both mail and validation configurations are okay (run schedule, credentials, from and to addresses)</p>
+<p class="tableblock"><code>ERROR</code>: Either mail or validation configuration is not okay</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_sample_response"><a class="link" href="#_sample_response">1.1.4. Sample Response</a></h4>
+<h4 id="_sample_response"><a class="link" href="#_sample_response">3.1.4. Sample Response</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
@@ -560,40 +865,40 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 93
 
-{"start_time":"Fri, 12 Jul 2024 12:43:49 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Fri, 12 Jul 2024 20:11:31 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_curl_request"><a class="link" href="#_curl_request">1.1.5. CURL request</a></h4>
+<h4 id="_curl_request"><a class="link" href="#_curl_request">3.1.5. CURL request</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA4MTUwOTEsImV4cCI6MTcyMDgxODY5MX0.sWbDyuCKt1w8Xw4sDUL-PfuOOwLTHosg3x89iU18IN0jo8B5OgxL0U3qpOl1H8H3Xj6BxMdI68jQLZiGvu-6jw' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_validation_tasks_last_run_data"><a class="link" href="#_validation_tasks_last_run_data">1.2. Validation Tasks - Last Run data</a></h3>
+<h3 id="_validation_tasks_last_run_data"><a class="link" href="#_validation_tasks_last_run_data">3.2. Validation Tasks - Last Run data</a></h3>
 <div class="paragraph">
 <p>This endpoint provides summary information about results of the last run of the validation tasks, including start time,
 time elapsed, total tasks, tasks ok, tasks failed, and if errors occurred.</p>
 </div>
 <div class="sect3">
-<h4 id="_request_structure_2"><a class="link" href="#_request_structure_2">1.2.1. Request Structure</a></h4>
+<h4 id="_request_structure_2"><a class="link" href="#_request_structure_2">3.2.1. Request Structure</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA4MTUwOTEsImV4cCI6MTcyMDgxODY5MX0.sWbDyuCKt1w8Xw4sDUL-PfuOOwLTHosg3x89iU18IN0jo8B5OgxL0U3qpOl1H8H3Xj6BxMdI68jQLZiGvu-6jw
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_request_headers_2"><a class="link" href="#_request_headers_2">1.2.2. Request Headers</a></h4>
+<h4 id="_request_headers_2"><a class="link" href="#_request_headers_2">3.2.2. Request Headers</a></h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -614,7 +919,7 @@ Host: localhost:8080</code></pre>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_response_structure_2"><a class="link" href="#_response_structure_2">1.2.3. Response Structure</a></h4>
+<h4 id="_response_structure_2"><a class="link" href="#_response_structure_2">3.2.3. Response Structure</a></h4>
 <div class="paragraph">
 <p>The following fields will be included if data is available (at least one run of validations has already
 completed) when the endpoint is called:</p>
@@ -661,7 +966,7 @@ completed) when the endpoint is called:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>tasks_errors</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0 if no errors occurred while conducting the requests (i.e. timeout), 1 otherwise</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code> if no errors occurred while conducting the requests (i.e. timeout), <code>1</code> otherwise</p></td>
 </tr>
 </tbody>
 </table>
@@ -691,7 +996,7 @@ completed) when the endpoint is called:</p>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_sample_response_2"><a class="link" href="#_sample_response_2">1.2.4. Sample Response</a></h4>
+<h4 id="_sample_response_2"><a class="link" href="#_sample_response_2">3.2.4. Sample Response</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 503 Service Unavailable
@@ -713,16 +1018,16 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 136
 
-{"start_time":"Fri, 12 Jul 2024 12:43:50 GMT","tasks_failed":"0","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"1"}</code></pre>
+{"start_time":"Fri, 12 Jul 2024 20:11:31 GMT","tasks_failed":"0","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"1"}</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_curl_request_2"><a class="link" href="#_curl_request_2">1.2.5. CURL request</a></h4>
+<h4 id="_curl_request_2"><a class="link" href="#_curl_request_2">3.2.5. CURL request</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA4MTUwOTEsImV4cCI6MTcyMDgxODY5MX0.sWbDyuCKt1w8Xw4sDUL-PfuOOwLTHosg3x89iU18IN0jo8B5OgxL0U3qpOl1H8H3Xj6BxMdI68jQLZiGvu-6jw' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -730,10 +1035,31 @@ Content-Length: 136
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_limitations_and_other_important_considerations"><a class="link" href="#_limitations_and_other_important_considerations">4. Limitations and other important considerations</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>At this stage of the project Validation Tasks can only send <code>GET</code> requests and validate responses with empty body or
+discrete, text-only data like plaintext, CSV, HTML, JSON, etc.</p>
+</li>
+<li>
+<p>When the run schedule is updated from the API WebApplicationContext is restarted automatically to begin
+using it (PID remains the same, beans &amp; variables like <code>start_time</code> are re-initialized).</p>
+</li>
+<li>
+<p>Apart from the API, the run schedule can also be set through a separate configuration file.
+Restarting the application manually after a change is also required in this case.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-12 12:43:27 UTC
+Last updated 2024-07-12 20:11:06 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
