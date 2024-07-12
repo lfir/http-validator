@@ -484,7 +484,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODc1MDgsImV4cCI6MTcyMDc5MTEwOH0.75jStYRdszTF4ATMCR3gW_IxNk9UsLpUOz074XcOiezq-KQascJEBD-kfB0hW4W3YK2wcYPnmTtpGAddETu26Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -560,7 +560,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 93
 
-{"start_time":"Fri, 12 Jul 2024 12:31:48 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Fri, 12 Jul 2024 12:43:49 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
@@ -569,7 +569,7 @@ Content-Length: 93
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODc1MDgsImV4cCI6MTcyMDc5MTEwOH0.75jStYRdszTF4ATMCR3gW_IxNk9UsLpUOz074XcOiezq-KQascJEBD-kfB0hW4W3YK2wcYPnmTtpGAddETu26Q' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -586,7 +586,7 @@ time elapsed, total tasks, tasks ok, tasks failed, and if errors occurred.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODc1MDgsImV4cCI6MTcyMDc5MTEwOH0.75jStYRdszTF4ATMCR3gW_IxNk9UsLpUOz074XcOiezq-KQascJEBD-kfB0hW4W3YK2wcYPnmTtpGAddETu26Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -713,7 +713,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 136
 
-{"start_time":"Fri, 12 Jul 2024 12:31:48 GMT","tasks_failed":"0","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"1"}</code></pre>
+{"start_time":"Fri, 12 Jul 2024 12:43:50 GMT","tasks_failed":"0","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"1"}</code></pre>
 </div>
 </div>
 </div>
@@ -722,7 +722,7 @@ Content-Length: 136
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODc1MDgsImV4cCI6MTcyMDc5MTEwOH0.75jStYRdszTF4ATMCR3gW_IxNk9UsLpUOz074XcOiezq-KQascJEBD-kfB0hW4W3YK2wcYPnmTtpGAddETu26Q' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA3ODgyMzAsImV4cCI6MTcyMDc5MTgzMH0.znmw0RWOvRJ-dpfjD4LoH2alPrss7GGq1kvRbd11UDcOaJFAOrPb8vsF5jsvjnv0J-V_pngzLbs-_75PYvxsAA' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -733,7 +733,7 @@ Content-Length: 136
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-12 12:31:21 UTC
+Last updated 2024-07-12 12:43:27 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
