@@ -107,14 +107,14 @@ Below are some examples of validation tasks in XML format:
 
 === Explanation of Examples
 
-1. **Example Task 1**:
+* **Example Task 1**:
   - **Request Method**: `GET` (indicated by `reqmethod="0"`)
   - **Request URL**: `http://example.com/api/status`
   - **Request Headers**: Two headers: `Authorization` with a bearer token and `Accept` with value `application/json`, separated by `&#9;` (tab character)
   - **Expected Status Code**: `200`
   - **Expected Response Body**: The string expected to be present in a plaintext response
 
-2. **Example Task 2**:
+* **Example Task 2**:
   - **Request Method**: `GET`
   - **Request URL**: `http://example.com/api/data`
   - **Request Headers**: One header: `Accept` with value `application/json`
@@ -126,7 +126,7 @@ Below are some examples of validation tasks in XML format:
 &quot; <!-- Is the escape character code used for quotation marks -->
 ```
 
-3. **Example Task 3**:
+* **Example Task 3**:
   - **Request Method**: `GET`
   - **Request URL**: `http://example.com/api/health`
   - **Request Headers**: No headers (indicated by empty value `""`)
@@ -138,7 +138,7 @@ Below are some examples of validation tasks in XML format:
 &quot; <!-- Is the escape character code used for quotation marks -->
 ```
 
-4. **Example Task 4**:
+* **Example Task 4**:
   - **Request Method**: `GET`
   - **Request URL**: `http://example.com/oldpath`
   - **Request Headers**: One header: `Custom-Header` with value `Header Value`, separated by `|` (pipe character).
@@ -148,6 +148,32 @@ Below are some examples of validation tasks in XML format:
 
 By following this structure, you can easily define multiple validation tasks in an XML file, which the system will use to
 perform automated checks on your web application endpoints.
+
+
+== Running the application
+
+=== Compiling the executable jar file
+
+```bash
+git clone https://github.com/lfir/http-validator.git
+cd http-validator
+./mvnw package
+```
+
+=== Starting the application
+
+```bash
+java -jar target/http-validator-x.y.z.jar
+```
+
+**NOTE:** If more than one version of Java is installed on the host a suitable one (**v17+**) might need to be specified
+instead of the default before running the commands above, i.e.
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+./mvnw...
+/path/to/java -jar...
+```
 
 
 == API - Information endpoints
@@ -212,11 +238,80 @@ include::{snippets}/can-get-last-run-info-when-data-available/http-response.adoc
 include::{snippets}/error503-when-no-last-run-data-available/curl-request.adoc[]
 
 
-== Limitations and other important considerations
+== API - Configuration management endpoints
+
+=== Update Validation Task definitions file
+
+This endpoint updates the validator's data file with new validation tasks. The file should be an XML file that adheres
+to the predefined https://github.com/lfir/http-validator/blob/main/src/main/resources/validations.xsd[schema^].
+
+==== Request Structure
+
+include::{snippets}/can-update-data-file-with-valid-xml/http-request.adoc[]
+
+==== Request Headers
+
+include::{snippets}/can-update-data-file-with-valid-xml/request-headers.adoc[]
+
+==== Response Structure
+
+If the new XML provided is valid according to the schema the body will be empty. Otherwise, an error message will be returned
+indicating whether the problem was in the contents of the new file or the operation of writing it to disk.
+
+include::{snippets}/error400-when-update-data-file-request-with-invalid-xml/response-fields.adoc[]
+
+==== Sample Response
+
+include::{snippets}/error400-when-update-data-file-request-with-invalid-xml/http-response.adoc[]
+
+include::{snippets}/can-update-data-file-with-valid-xml/http-response.adoc[]
+
+==== CURL request
+
+include::{snippets}/can-update-data-file-with-valid-xml/curl-request.adoc[]
+
+
+=== Update Run Schedule
+
+This endpoint updates the validator's run schedule with a new
+https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html#cron()[cron expression^].
+
+==== Request Structure
+
+include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/http-request.adoc[]
+
+==== Request Headers
+
+include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/request-headers.adoc[]
+
+==== Response Structure
+
+If the new cron expression provided is valid the body will be empty. Otherwise, an error message will be returned.
+
+include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/response-fields.adoc[]
+
+==== Sample Response
+
+include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/http-response.adoc[]
+
+include::{snippets}/can-update-data-file-with-valid-xml/http-response.adoc[]
+
+==== CURL request
+
+include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/curl-request.adoc[]
+
+
+== Important files used by the application
+
+- **./config/application.properties** - Used to set the run schedule and location of the datafile.
+Restarting the application manually after a change to this file is required so they enter in effect.
+- **./config/validations.xml** - File with the validation task definitions.
+- **./logs/spring-framework.log** - The main log file of the application.
+
+
+== Limitations and other relevant information
 
 - At this stage of the project Validation Tasks can only send `GET` requests and validate responses with empty body or
 discrete, text-only data like plaintext, CSV, HTML, JSON, etc.
 - When the run schedule is updated from the API WebApplicationContext is restarted automatically to begin
 using it (PID remains the same, beans & variables like `start_time` are re-initialized).
-- Apart from the API, the run schedule can also be set through a separate configuration file.
-Restarting the application manually after a change is also required in this case.

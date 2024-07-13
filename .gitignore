@@ -35,3 +35,4 @@ build/
 
 logs/
 
+/config/validations-test.xml

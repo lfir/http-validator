@@ -21,12 +21,12 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoControll
 @RestController
 @CrossOrigin
 public class AppConfigurationController {
-    static final String UPD_RUN_SCHEDULE_ENDPOINT = "/api/validator/runschedule";
-    static final String UPD_DATA_FILE_ENDPOINT = "/api/validator/datafile";
-    static final String CRON_EXPRESSION_KEY = "cron_expression";
-    static final String INVALID_CRON_EXPRESSION_ERROR_MSG = "Invalid Cron Expression";
-    static final String INVALID_DATA_FILE_ERROR_MSG = "Invalid Data File";
-    static final String UPD_DATA_FILE_ERROR_MSG = "Error updating Data File";
+    public static final String UPD_RUN_SCHEDULE_ENDPOINT = "/api/validator/runschedule";
+    public static final String UPD_DATA_FILE_ENDPOINT = "/api/validator/datafile";
+    public static final String CRON_EXPRESSION_KEY = "cron_expression";
+    public static final String INVALID_CRON_EXPRESSION_ERROR_MSG = "Invalid Cron Expression";
+    public static final String INVALID_DATA_FILE_ERROR_MSG = "Invalid Data File";
+    public static final String UPD_DATA_FILE_ERROR_MSG = "Error updating Data File";
     @Autowired
     private ValidationService valServ;
     @Autowired
