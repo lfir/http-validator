@@ -33,6 +33,12 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Provides methods to interact with the XML data file containing validation tasks.
+ * <p>
+ * This class is responsible for reading and updating the XML data file,
+ * parsing its content, and validating its structure against a predefined schema.
+ */
 @Component
 public class XMLValidationTaskDao {
     static final String VALIDATION_TAG = "validation";
@@ -46,9 +52,19 @@ public class XMLValidationTaskDao {
     private static final String SCHEMA_FILENAME = "validations.xsd";
     private DocumentBuilder xmlParser;
     private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
+
     @Autowired
     private Environment env;
 
+    /**
+     * Constructs an instance of XMLValidationTaskDao.
+     * <p>
+     * Initializes the XML parser with schema validation and security features.
+     *
+     * @throws ParserConfigurationException if a DocumentBuilder cannot be created.
+     * @throws SAXException if an error occurs during schema parsing.
+     * @throws IOException if an error occurs during schema file loading.
+     */
     public XMLValidationTaskDao() throws ParserConfigurationException, SAXException, IOException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = schemaFactory.newSchema((new ClassPathResource(SCHEMA_FILENAME)).getURL());
@@ -65,8 +81,20 @@ public class XMLValidationTaskDao {
         this.xmlParser.setErrorHandler(xsdErrorHandler);
     }
 
+    /**
+     * Retrieves the file path of the XML data file from the environment properties.
+     *
+     * @return The path of the XML data file.
+     */
     Path getDataFilePath() { return Path.of(requireNonNull(this.env.getProperty(DATAFILE_PROPERTY))); }
 
+    /**
+     * Parses the given XML input stream into a Document.
+     *
+     * @param inputStream The input stream of the XML content.
+     * @return The parsed Document.
+     * @throws XMLParseException if parsing fails.
+     */
     Document parseXMLInput(InputStream inputStream) throws XMLParseException {
         try {
             return this.xmlParser.parse(inputStream);
@@ -77,6 +105,14 @@ public class XMLValidationTaskDao {
         }
     }
 
+    /**
+     * Updates the XML data file with the content of the given multipart file.
+     *
+     * @param file The multipart file containing the new XML content.
+     * @throws IOException if an I/O error occurs.
+     * @throws NullPointerException if the file is null.
+     * @throws XMLParseException if the XML content is invalid.
+     */
     public synchronized void updateDataFile(MultipartFile file) throws IOException, NullPointerException, XMLParseException {
         try {
             this.parseXMLInput(file.getInputStream());
@@ -90,10 +126,24 @@ public class XMLValidationTaskDao {
         }
     }
 
+    /**
+     * Retrieves the XML Document from the data file.
+     *
+     * @return The parsed Document.
+     * @throws XMLParseException if parsing fails.
+     * @throws FileNotFoundException if the data file is not found.
+     */
     synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
         return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));
     }
 
+    /**
+     * Retrieves all validation tasks from the XML data file.
+     *
+     * @return A list of validation tasks.
+     * @throws XMLParseException if parsing fails.
+     * @throws FileNotFoundException if the data file is not found.
+     */
     public List<ValidationTask> getAll() throws XMLParseException, FileNotFoundException {
         List<ValidationTask> tasks = new ArrayList<>();
         NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
@@ -113,14 +163,36 @@ public class XMLValidationTaskDao {
         return tasks;
     }
 
+    /**
+     * Checks if the XML data file exists and is readable.
+     *
+     * @return True if the data file exists and is readable, false otherwise.
+     */
     public boolean isDataFileStatusOk() {
         Path path = this.getDataFilePath();
         return Files.isRegularFile(path) && Files.isReadable(path);
     }
 
+    /**
+     * Sets the XML parser for the XMLValidationTaskDao. Used for testing purposes.
+     *
+     * @param xmlParser The XML parser to set.
+     */
     void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }
 
+    /**
+     * Sets the logger; for testing purposes.
+     *
+     * @param logger The logger to set.
+     */
     void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }
 
+    /**
+     * Sets the environment for the XMLValidationTaskDao.
+     * <p>
+     * This method is used for testing purposes to inject a mock environment.
+     *
+     * @param env The environment to set.
+     */
     void setEnv(Environment env) { this.env = env; }
 }

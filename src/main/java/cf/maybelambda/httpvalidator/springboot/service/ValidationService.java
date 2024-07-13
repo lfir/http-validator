@@ -36,6 +36,10 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoControll
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
 import static java.util.Objects.nonNull;
 
+/**
+ * Service for handling validation tasks, executing scheduled validations,
+ * and managing validation results.
+ */
 @Service
 public class ValidationService {
     public static final String HEADER_KEY_VALUE_DELIMITER = "|";
@@ -46,6 +50,7 @@ public class ValidationService {
     private int[] lrTaskCounts;
     private HttpClient client;
     private static Logger logger = LoggerFactory.getLogger(ValidationService.class);
+
     @Autowired
     private EmailNotificationService notificationService;
     @Autowired
@@ -53,12 +58,25 @@ public class ValidationService {
     @Autowired
     private Environment env;
 
+    /**
+     * Constructor to initialize the HTTP client with default settings.
+     */
     public ValidationService() {
         this.client = HttpClient.newBuilder()
             .connectTimeout(TIMEOUT_SECONDS)
             .followRedirects(HttpClient.Redirect.ALWAYS).build();
     }
 
+    /**
+     * Executes validation tasks based on a cron schedule.
+     * Retrieves tasks, sends HTTP requests, and processes responses.
+     * Sends email notifications for any validation failures.
+     * Updates last run information with results of validation tasks.
+     *
+     * @throws FileNotFoundException if the validation tasks file is not found
+     * @throws XMLParseException if there is an error parsing the XML file
+     * @throws ConnectIOException if there is an error connecting to the target servers
+     */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
     public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException {
         Instant start = Instant.now();
@@ -106,7 +124,7 @@ public class ValidationService {
             }
             logger.info(logmsg + " for: {}", task.reqURL());
         }
-        if (failures.size() > 0) {
+        if (!failures.isEmpty()) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
         taskCounts[0] = tasks.size();
@@ -117,6 +135,12 @@ public class ValidationService {
         this.lrEnd = Instant.now();
     }
 
+    /**
+     * Retrieves information about the last run of validation tasks.
+     *
+     * @return A map containing start time, time elapsed, total tasks, successful tasks,
+     * failed tasks, and if errors were encountered during the last run.
+     */
     public Map<String, String> getLastRunInfo() {
         Map<String, String> res = new HashMap<>();
         if (nonNull(this.lrEnd)) {
@@ -131,10 +155,21 @@ public class ValidationService {
         return res;
     }
 
+    /**
+     * Checks if the configuration is valid by validating the cron expression currently in use.
+     *
+     * @return true if the configuration is valid, false otherwise
+     */
     public boolean isValidConfig() {
         return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));
     }
 
+    /**
+     * Validates a given cron expression.
+     *
+     * @param cronExpr Cron expression to validate
+     * @return true if the cron expression is valid, false otherwise
+     */
     public boolean isValidCronExpression(String cronExpr) {
         boolean ans = true;
         if (!"-".equals(cronExpr)) {
@@ -148,13 +183,38 @@ public class ValidationService {
         return ans;
     }
 
+    /**
+     * Sets the HTTP client. Used for testing purposes.
+     *
+     * @param client HTTP client
+     */
     void setClient(HttpClient client) { this.client = client; }
 
+    /**
+     * Sets the email notification service. Used for testing purposes.
+     *
+     * @param service Email notification service
+     */
     void setNotificationService(EmailNotificationService service) { this.notificationService = service; }
 
+    /**
+     * Sets the XML validation task DAO. Used for testing purposes.
+     *
+     * @param taskReader XML validation task DAO
+     */
     void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }
 
+    /**
+     * Sets the logger. Used for testing purposes.
+     *
+     * @param logger Logger
+     */
     void setLogger(Logger logger) { ValidationService.logger = logger; }
 
+    /**
+     * Sets the environment. Used for testing purposes.
+     *
+     * @param env Environment
+     */
     void setEnv(Environment env) { this.env = env; }
 }

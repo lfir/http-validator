@@ -22,6 +22,9 @@ import static io.micrometer.common.util.StringUtils.isBlank;
 import static io.micrometer.common.util.StringUtils.truncate;
 import static java.util.Objects.isNull;
 
+/**
+ * Service to send email notifications using SendGrid.
+ */
 @Service
 public class EmailNotificationService {
     static final String BODY_LINE1 = "Request URL: ";
@@ -32,9 +35,16 @@ public class EmailNotificationService {
     static final String TO_PROPERTY = "notifications.to";
     private SendGrid client;
     private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
+
     @Autowired
     private Environment env;
 
+    /**
+     * Builds the email body content from a list of validation results.
+     *
+     * @param contents A list of string arrays containing validation results.
+     * @return The email body as a single string.
+     */
     String buildMailBody(List<String[]> contents) {
         String res = "";
         for (String[] c : contents) {
@@ -47,6 +57,13 @@ public class EmailNotificationService {
         return res;
     }
 
+    /**
+     * Sends a plain text email with the specified subject and body.
+     *
+     * @param subject The subject of the email.
+     * @param body The body content of the email.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
     void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
         Email from = new Email(this.getFrom());
         from.setName("Chronos Maybelambda");
@@ -69,6 +86,12 @@ public class EmailNotificationService {
         }
     }
 
+    /**
+     * Sends a notification email with validation task failure results.
+     *
+     * @param mailBody A list of validation task failure results.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
     public void sendVTaskErrorsNotification(@NonNull List<String[]> mailBody) throws ConnectIOException {
         String subject = "Notification of HTTP validation results";
         String body = this.buildMailBody(mailBody);
@@ -76,6 +99,12 @@ public class EmailNotificationService {
         this.sendPlainTextEmail(subject, body);
     }
 
+    /**
+     * Sends a notification email about application termination.
+     *
+     * @param endTime The end time of the application.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
     public void sendAppTerminatedNotification(String endTime) throws ConnectIOException {
         String subject = "HTTP Validator app terminated";
         String body = String.format("ContextClosedEvent occurred on: %s.", endTime);
@@ -83,19 +112,63 @@ public class EmailNotificationService {
         this.sendPlainTextEmail(subject, body);
     }
 
+    /**
+     * Checks if the email configuration is valid.
+     * <p>
+     * This method verifies that the necessary properties for sending emails
+     * are properly configured in the environment. Specifically, it checks:
+     * <ul>
+     *     <li>The "notifications.from" property, which should contain the sender's email address.</li>
+     *     <li>The "notifications.to" property, which should contain the recipient's email address.</li>
+     *     <li>The "sendgrid.apikey" property, which should contain the SendGrid API key for authentication.</li>
+     * </ul>
+     * If any of these properties are blank or missing, the configuration is considered invalid.
+     *
+     * @return True if all necessary properties are set and non-blank, false otherwise.
+     */
     public boolean isValidConfig() {
         return !(isBlank(this.getFrom()) || isBlank(this.getTo()) || isBlank(this.getApiKey()));
     }
 
+    /**
+     * Gets the SendGrid API key from the environment.
+     *
+     * @return The API key as a string.
+     */
     private String getApiKey() { return this.env.getProperty(APIKEY_PROPERTY); }
 
+    /**
+     * Gets the email address through which notifications are sent.
+     *
+     * @return The sender email address.
+     */
     String getFrom() { return this.env.getProperty(FROM_PROPERTY); }
 
+    /**
+     * Gets the email address to which notifications are sent.
+     *
+     * @return The recipient email address.
+     */
     String getTo() { return this.env.getProperty(TO_PROPERTY); }
 
+    /**
+     * Sets the SendGrid client; for testing purposes.
+     *
+     * @param sg The SendGrid client to set.
+     */
     void setClient(SendGrid sg) { this.client = sg; }
 
+    /**
+     * Sets the logger; for testing purposes.
+     *
+     * @param logger The logger to set.
+     */
     void setLogger(Logger logger) { EmailNotificationService.logger = logger; }
 
+    /**
+     * Sets the environment; for testing purposes.
+     *
+     * @param env The environment to set.
+     */
     void setEnv(Environment env) { this.env = env; }
 }

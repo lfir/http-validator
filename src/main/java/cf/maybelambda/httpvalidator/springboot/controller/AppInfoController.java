@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Controller for providing status and last run information of the application.
+ */
 @RestController
 @CrossOrigin
 public class AppInfoController {
@@ -30,6 +33,7 @@ public class AppInfoController {
     static final String OK_VALUE = "OK";
     public static final String DATAFILE_STATUS_KEY = "datafile_status";
     public static final String CONFIG_STATUS_KEY = "config_status";
+
     @Autowired
     private XMLValidationTaskDao dao;
     @Autowired
@@ -40,10 +44,10 @@ public class AppInfoController {
     private EventListenerService eventServ;
 
     /**
-     * If WebApplicationContext initialization was completed returns OK.
+     * Retrieves the current status of the web application.
      * Body: datafile and config status (i.e. parsable / valid) and app's start time.
      *
-     * @return The HTTP response object.
+     * @return ResponseEntity containing the status information.
      */
     @GetMapping(STATUS_ENDPOINT)
     public ResponseEntity<Map<String, String>> informWebAppStatus() {
@@ -61,6 +65,12 @@ public class AppInfoController {
         return ResponseEntity.ok(res);
     }
 
+    /**
+     * Retrieves the information about the last run of the validation service.
+     * If no last run data is available, it returns a SERVICE UNAVAILABLE status with an error message.
+     *
+     * @return ResponseEntity containing the last run information or error message.
+     */
     @GetMapping(LAST_RUN_ENDPOINT)
     public ResponseEntity<Map<String, String>> informLastRunData() {
         ResponseEntity<Map<String, String>> res;

@@ -17,5 +17,8 @@ For more details check the following site:
 
 ### Next steps
 
-- API docs
 - Sending POST requests
+- Making Validation Tasks more flexible
+  - Ignore whitespace differences outside of values in content types like JSON
+  - Check response headers
+  - Notification settings specific to each task
