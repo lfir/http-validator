@@ -42,7 +42,8 @@ This can help maintain the integrity and performance of the web application, ens
 
 In essence, the HTTP Validator can provide a robust yet flexible solution for monitoring web application endpoints and content or systems reachable via HTTP.
 By automating the process of sending requests and validating responses, it helps ensure the application remains reliable and performant.
-The ability to configure tasks and schedules easily, combined with prompt email notifications for issues and low resource usage, makes it a practical tool
+
+The ability to configure tasks and schedules easily, combined with prompt email notifications for issues and low resource usage, make it a practical tool
 for monitoring and maintaining application health.
 
 
@@ -60,7 +61,7 @@ An XML file for defining validation tasks, which is used to specify the details 
    - `reqmethod`: The HTTP request method (use `0` for `GET` requests).
    - `requrl`: The URL to which the request will be sent (up to 2000 characters).
    - `reqheaders`: Any headers that should be included in the request. These should be formatted as `HeaderName|HeaderValue`,
-   separated by tabs (`&#9;`) if there are multiple headers (up to 4000 characters). Can be left empty for no headers.
+   separated by carets (`^`) if there are multiple headers (up to 4000 characters). Can be left empty for no headers.
    - `ressc`: The expected HTTP status code in the response.
    - `resbody`: The expected body of the response (up to 1000 characters).
 
@@ -75,7 +76,7 @@ Below are some examples of validation tasks in XML format:
     <validation
         reqmethod="0"
         requrl="http://example.com/api/status"
-        reqheaders="Authorization|Bearer token4534354X.9+yjo&#9;Accept|application/json"
+        reqheaders="Authorization|Bearer token4534354X.9+yjo^Accept|application/json"
         ressc="200"
         resbody="A string in a plaintext response" />
 
@@ -93,7 +94,7 @@ Below are some examples of validation tasks in XML format:
         requrl="http://example.com/api/health"
         reqheaders=""
         ressc="200"
-        resbody="&quot;health&quot;:87876854354" />
+        resbody='"health":87876854354' />
 
     <!-- Example Task 4 -->
     <validation
@@ -110,7 +111,7 @@ Below are some examples of validation tasks in XML format:
 * **Example Task 1**:
   - **Request Method**: `GET` (indicated by `reqmethod="0"`)
   - **Request URL**: `http://example.com/api/status`
-  - **Request Headers**: Two headers: `Authorization` with a bearer token and `Accept` with value `application/json`, separated by `&#9;` (tab character)
+  - **Request Headers**: Two headers: `Authorization` with a bearer token and `Accept` with value `application/json`, separated by `^` (caret character)
   - **Expected Status Code**: `200`
   - **Expected Response Body**: The string expected to be present in a plaintext response
 
@@ -132,11 +133,8 @@ Below are some examples of validation tasks in XML format:
   - **Request Headers**: No headers (indicated by empty value `""`)
   - **Expected Status Code**: `200`
   - **Expected Response Body**: `"health":87876854354`
-  **Note:**
 
-```xml
-&quot; <!-- Is the escape character code used for quotation marks -->
-```
+**Note:** `'` is used to open and close the value of the attribute, allowing `"` to be used within it.
 
 * **Example Task 4**:
   - **Request Method**: `GET`
@@ -145,6 +143,9 @@ Below are some examples of validation tasks in XML format:
   Header values can contain unescaped spaces.
   - **Expected Status Code**: `404`
   - **Expected Response Body**: Body contents are ignored (indicated by empty value `""`)
+
+Besides these common cases most text editors and many online tools can read an input URL or string and highlight any conflicting
+characters in XML and provide alternatives to escape them.
 
 By following this structure, you can easily define multiple validation tasks in an XML file, which the system will use to
 perform automated checks on your web application endpoints.

@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
 
@@ -45,7 +46,7 @@ public class XMLValidationTaskDao {
     static final String REQ_METHOD_ATTR = "reqmethod";
     static final String REQ_URL_ATTR = "requrl";
     static final String REQ_HEADERS_ATTR = "reqheaders";
-    static final String HEADER_DELIMITER = "\u0009";
+    static final String HEADER_DELIMITER = "^";
     static final String RES_SC_ATTR = "ressc";
     static final String RES_BODY_ATTR = "resbody";
     static final String DATAFILE_PROPERTY = "datafile";
@@ -150,10 +151,14 @@ public class XMLValidationTaskDao {
 
         for (int i = 0; i < validations.getLength(); i++) {
             NamedNodeMap nm = validations.item(i).getAttributes();
+            List<String> headers = Arrays.stream(
+                nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(Pattern.quote(HEADER_DELIMITER))
+            ).filter(StringUtils::isNotEmpty).toList();
+
             ValidationTask v = new ValidationTask(
                 Integer.parseInt(nm.getNamedItem(REQ_METHOD_ATTR).getTextContent()),
                 nm.getNamedItem(REQ_URL_ATTR).getTextContent(),
-                Arrays.stream(nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(HEADER_DELIMITER)).filter(StringUtils::isNotEmpty).toList(),
+                headers,
                 Integer.parseInt(nm.getNamedItem(RES_SC_ATTR).getTextContent()),
                 nm.getNamedItem(RES_BODY_ATTR).getTextContent()
             );

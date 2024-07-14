@@ -1,7 +1,9 @@
 package cf.maybelambda.httpvalidator.springboot.itest;
 
+import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
+import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +57,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class AppConfigurationControllerIntegrationTests {
     public static String UPD_DATAFILE_ERRORS_DESCR = INVALID_DATA_FILE_ERROR_MSG + " or " + UPD_DATA_FILE_ERROR_MSG;
     private String testsToken;
+    private MockMvc mockMvc;
+
     @Autowired
     private ObjectMapper mapper;
     @Autowired
@@ -62,7 +67,8 @@ public class AppConfigurationControllerIntegrationTests {
     private JwtAuthenticationService authServ;
     @Autowired
     private XMLValidationTaskDao dao;
-    private MockMvc mockMvc;
+    @Autowired
+    private ValidationService valServ;
 
     @BeforeEach
     public void setUp(RestDocumentationContextProvider restDocumentation) {
@@ -89,18 +95,22 @@ public class AppConfigurationControllerIntegrationTests {
                 document("{method-name}",
                     REQUEST_HEADERS_SNIPPET,
                     requestFields(
-                        fieldWithPath("cron_expression").description("A valid cron expression for scheduling tasks")
+                        fieldWithPath(CRON_EXPRESSION_KEY).description("A valid cron expression for scheduling tasks")
                     ),
                     responseFields(
                         fieldWithPath(ERROR_VALUE.toLowerCase()).description(INVALID_CRON_EXPRESSION_ERROR_MSG)
                     )
                 )
             );
-    }
 
+        // Verify that the invalid expression was not applied
+        assertThat(this.valServ.isValidConfig()).isTrue();
+    }
 
     @Test
     public void canUpdateDataFileWithValidXML() throws Exception {
+        ValidationTask task = new ValidationTask(0, "http://example.com/api/test", Collections.emptyList(), 200, "");
+
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
                             +    "<validation reqmethod=\"0\" requrl=\"http://example.com/api/test\" "
@@ -123,10 +133,13 @@ public class AppConfigurationControllerIntegrationTests {
             .andDo(document("{method-name}", REQUEST_HEADERS_SNIPPET));
 
         assertThat(this.dao.isDataFileStatusOk()).isTrue();
+        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
     }
 
     @Test
     public void error400WhenUpdateDataFileRequestWithInvalidXML() throws Exception {
+        ValidationTask task = this.dao.getAll().get(0);
+
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
                             +    "<validation reqmethod=\"25\" requrl=\"http://example.com/api/test\" "
@@ -153,5 +166,8 @@ public class AppConfigurationControllerIntegrationTests {
                     )
                 )
             );
+
+        // Verify the original file contents have not been modified
+        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
     }
 }

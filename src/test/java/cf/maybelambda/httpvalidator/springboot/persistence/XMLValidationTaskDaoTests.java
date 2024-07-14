@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.DATAFILE_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.HEADER_DELIMITER;
@@ -96,8 +97,8 @@ public class XMLValidationTaskDaoTests {
 
         assertEquals(Integer.parseInt(this.nodeA.getTextContent()), ans.get(0).reqMethod());
         assertEquals(nodeA.getTextContent(), ans.get(0).reqURL());
-        assertEquals(this.nodeB.getTextContent().split(HEADER_DELIMITER)[0], ans.get(0).reqHeaders().get(0));
-        assertEquals(this.nodeB.getTextContent().split(HEADER_DELIMITER)[1], ans.get(0).reqHeaders().get(1));
+        assertEquals(this.nodeB.getTextContent().split(Pattern.quote(HEADER_DELIMITER))[0], ans.get(0).reqHeaders().get(0));
+        assertEquals(this.nodeB.getTextContent().split(Pattern.quote(HEADER_DELIMITER))[1], ans.get(0).reqHeaders().get(1));
         assertEquals(Integer.parseInt(this.nodeA.getTextContent()), ans.get(0).validStatusCode());
         assertEquals(this.nodeB.getTextContent(), ans.get(0).validBody());
     }
