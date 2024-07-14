@@ -855,7 +855,7 @@ instead of the default before running the commands above, i.e.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -929,7 +929,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 93
 
-{"start_time":"Sun, 14 Jul 2024 22:40:59 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Sun, 14 Jul 2024 23:07:39 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
@@ -938,7 +938,7 @@ Content-Length: 93
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -955,7 +955,7 @@ time elapsed, total tasks, tasks ok, tasks failed, and if errors occurred.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1082,7 +1082,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 136
 
-{"start_time":"Sun, 14 Jul 2024 22:41:00 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"0"}</code></pre>
+{"start_time":"Sun, 14 Jul 2024 23:07:39 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0","tasks_errors":"0"}</code></pre>
 </div>
 </div>
 </div>
@@ -1091,7 +1091,7 @@ Content-Length: 136
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -1114,7 +1114,7 @@ to the predefined <a href="https://github.com/lfir/http-validator/blob/main/src/
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/datafile HTTP/1.1
 Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ
 Host: localhost:8080
 
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
@@ -1204,7 +1204,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/datafile' -i -X PUT \
     -H 'Content-Type: multipart/form-data' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ' \
     -F 'file=@validations.xml;type=application/xml'</code></pre>
 </div>
 </div>
@@ -1222,7 +1222,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/runschedule HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ
 Content-Length: 29
 Host: localhost:8080
 
@@ -1307,7 +1307,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/runschedule' -i -X PUT \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTY4NjAsImV4cCI6MTcyMTAwMDQ2MH0.r0NLOBddXfuoN149idi4jbd1CqUAqBj0YVX3riWocIKfxPYLObXuBVjHZliJ_UkAzcSnVVbJmHDOjflVy_Pvtg' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE3MjA5OTg0NTksImV4cCI6MTcyMTAwMjA1OX0.agmhdq47TKuM5Feb-jRKMgd0ScwpvSfHvNsJccVCWikLp4A0Q--S6bUxCRjLoBs2k0JzRelUISExMSESYK8cPQ' \
     -d '{"cron_expression":"* 2 * ?"}'</code></pre>
 </div>
 </div>
@@ -1354,7 +1354,7 @@ using it (PID remains the same, beans &amp; variables like <code>start_time</cod
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-14 22:40:36 UTC
+Last updated 2024-07-14 23:07:15 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
