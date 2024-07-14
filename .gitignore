@@ -34,5 +34,3 @@ build/
 .mvn
 
 logs/
-
-/config/validations-test.xml
