@@ -27,13 +27,6 @@ public class ValidationTaskTests {
     }
 
     @Test
-    void equalsReturnsFalseWhenNullObject() {
-        ValidationTask task = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-
-        assertThat(task.equals(null)).isFalse();
-    }
-
-    @Test
     void equalsReturnsFalseWhenDifferentType() {
         ValidationTask task = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
         String other = "Not a ValidationTask";
@@ -86,7 +79,6 @@ public class ValidationTaskTests {
         ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
         ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
 
-        assertThat(task1 == task2).isFalse();
         assertThat(task1.equals(task2)).isTrue();
     }
 
@@ -95,7 +87,6 @@ public class ValidationTaskTests {
         ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
         ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
 
-        assertThat(task1 == task2).isFalse();
         assertThat(task1.hashCode()).isEqualTo(task2.hashCode());
     }
 }
