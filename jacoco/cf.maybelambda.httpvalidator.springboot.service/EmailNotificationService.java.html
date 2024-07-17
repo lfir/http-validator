@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailNotificationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.service</a> &gt; <span class="el_source">EmailNotificationService.java</span></div><h1>EmailNotificationService.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.service;
+
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.rmi.ConnectIOException;
+import java.util.List;
+
+import static io.micrometer.common.util.StringUtils.isBlank;
+import static io.micrometer.common.util.StringUtils.truncate;
+import static java.util.Objects.isNull;
+
+/**
+ * Service to send email notifications using SendGrid.
+ */
+@Service
+<span class="fc" id="L29">public class EmailNotificationService {</span>
+    static final String BODY_LINE1 = &quot;Request URL: &quot;;
+    static final String BODY_LINE2 = &quot;Response Status Code: &quot;;
+    static final String BODY_LINE3 = &quot;Response body: &quot;;
+    static final String APIKEY_PROPERTY = &quot;sendgrid.apikey&quot;;
+    static final String FROM_PROPERTY = &quot;notifications.from&quot;;
+    static final String TO_PROPERTY = &quot;notifications.to&quot;;
+    private SendGrid client;
+<span class="fc" id="L37">    private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);</span>
+
+    @Autowired
+    private Environment env;
+
+    /**
+     * Builds the email body content from a list of validation results.
+     *
+     * @param contents A list of string arrays containing validation results.
+     * @return The email body as a single string.
+     */
+    String buildMailBody(List&lt;String[]&gt; contents) {
+<span class="fc" id="L49">        String res = &quot;&quot;;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (String[] c : contents) {</span>
+<span class="fc" id="L51">            String p0 = BODY_LINE1 + c[0] + &quot;\n&quot;;</span>
+<span class="fc" id="L52">            String p1 = BODY_LINE2 + c[1] + &quot;\n&quot;;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            String p2 = BODY_LINE3 + (c[2] == null ? &quot;&quot; : truncate(c[2], 800, &quot;...&quot;));</span>
+<span class="fc" id="L54">            res += p0 + p1 + p2 + &quot;\n\n\n&quot;;</span>
+<span class="fc" id="L55">        }</span>
+
+<span class="fc" id="L57">        return res;</span>
+    }
+
+    /**
+     * Sends a plain text email with the specified subject and body.
+     *
+     * @param subject The subject of the email.
+     * @param body The body content of the email.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
+    void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
+<span class="fc" id="L68">        Email from = new Email(this.getFrom());</span>
+<span class="fc" id="L69">        from.setName(&quot;Chronos Maybelambda&quot;);</span>
+<span class="fc" id="L70">        Email to = new Email(this.getTo());</span>
+<span class="fc" id="L71">        Content content = new Content(&quot;text/plain&quot;, body);</span>
+<span class="fc" id="L72">        Mail mail = new Mail(from, subject, to, content);</span>
+
+<span class="fc" id="L74">        Request request = new Request();</span>
+<span class="fc" id="L75">        request.setMethod(Method.POST);</span>
+<span class="fc" id="L76">        request.setEndpoint(&quot;mail/send&quot;);</span>
+        try {
+<span class="fc" id="L78">            request.setBody(mail.build());</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">            if (isNull(this.client)) { this.client = new SendGrid(this.getApiKey()); }</span>
+<span class="fc" id="L80">            Response res = this.client.api(request);</span>
+<span class="fc" id="L81">            logger.info(&quot;Email delivery result: Status Code: {}&quot;, res.getStatusCode() + &quot; - Body: &quot; + res.getBody());</span>
+<span class="fc" id="L82">        } catch (IOException e) {</span>
+<span class="fc" id="L83">            String errmsg = &quot;POST request for delivery of the Notification Email could not be completed.&quot;;</span>
+<span class="fc" id="L84">            logger.error(errmsg);</span>
+<span class="fc" id="L85">            throw new ConnectIOException(errmsg, e);</span>
+<span class="fc" id="L86">        }</span>
+<span class="fc" id="L87">    }</span>
+
+    /**
+     * Sends a notification email with validation task failure results.
+     *
+     * @param mailBody A list of validation task failure results.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
+    public void sendVTaskErrorsNotification(@NonNull List&lt;String[]&gt; mailBody) throws ConnectIOException {
+<span class="fc" id="L96">        String subject = &quot;Notification of HTTP validation results&quot;;</span>
+<span class="fc" id="L97">        String body = this.buildMailBody(mailBody);</span>
+
+<span class="fc" id="L99">        this.sendPlainTextEmail(subject, body);</span>
+<span class="fc" id="L100">    }</span>
+
+    /**
+     * Sends a notification email about application termination.
+     *
+     * @param endTime The end time of the application.
+     * @throws ConnectIOException If an error occurs while sending the email.
+     */
+    public void sendAppTerminatedNotification(String endTime) throws ConnectIOException {
+<span class="fc" id="L109">        String subject = &quot;HTTP Validator app terminated&quot;;</span>
+<span class="fc" id="L110">        String body = String.format(&quot;ContextClosedEvent occurred on: %s.&quot;, endTime);</span>
+
+<span class="fc" id="L112">        this.sendPlainTextEmail(subject, body);</span>
+<span class="fc" id="L113">    }</span>
+
+    /**
+     * Checks if the email configuration is valid.
+     * &lt;p&gt;
+     * This method verifies that the necessary properties for sending emails
+     * are properly configured in the environment. Specifically, it checks:
+     * &lt;ul&gt;
+     *     &lt;li&gt;The &quot;notifications.from&quot; property, which should contain the sender's email address.&lt;/li&gt;
+     *     &lt;li&gt;The &quot;notifications.to&quot; property, which should contain the recipient's email address.&lt;/li&gt;
+     *     &lt;li&gt;The &quot;sendgrid.apikey&quot; property, which should contain the SendGrid API key for authentication.&lt;/li&gt;
+     * &lt;/ul&gt;
+     * If any of these properties are blank or missing, the configuration is considered invalid.
+     *
+     * @return True if all necessary properties are set and non-blank, false otherwise.
+     */
+    public boolean isValidConfig() {
+<span class="fc bfc" id="L130" title="All 6 branches covered.">        return !(isBlank(this.getFrom()) || isBlank(this.getTo()) || isBlank(this.getApiKey()));</span>
+    }
+
+    /**
+     * Gets the SendGrid API key from the environment.
+     *
+     * @return The API key as a string.
+     */
+<span class="fc" id="L138">    private String getApiKey() { return this.env.getProperty(APIKEY_PROPERTY); }</span>
+
+    /**
+     * Gets the email address through which notifications are sent.
+     *
+     * @return The sender email address.
+     */
+<span class="fc" id="L145">    String getFrom() { return this.env.getProperty(FROM_PROPERTY); }</span>
+
+    /**
+     * Gets the email address to which notifications are sent.
+     *
+     * @return The recipient email address.
+     */
+<span class="fc" id="L152">    String getTo() { return this.env.getProperty(TO_PROPERTY); }</span>
+
+    /**
+     * Sets the SendGrid client; for testing purposes.
+     *
+     * @param sg The SendGrid client to set.
+     */
+<span class="fc" id="L159">    void setClient(SendGrid sg) { this.client = sg; }</span>
+
+    /**
+     * Sets the logger; for testing purposes.
+     *
+     * @param logger The logger to set.
+     */
+<span class="fc" id="L166">    void setLogger(Logger logger) { EmailNotificationService.logger = logger; }</span>
+
+    /**
+     * Sets the environment; for testing purposes.
+     *
+     * @param env The environment to set.
+     */
+<span class="fc" id="L173">    void setEnv(Environment env) { this.env = env; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

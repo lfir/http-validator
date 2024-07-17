@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.service</a> &gt; <span class="el_source">ValidationService.java</span></div><h1>ValidationService.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.service;
+
+import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
+import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronExpression;
+import org.springframework.stereotype.Service;
+
+import javax.management.modelmbean.XMLParseException;
+import java.io.FileNotFoundException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.rmi.ConnectIOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+
+import static cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp.RUN_SCHEDULE_PROPERTY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
+import static java.util.Objects.nonNull;
+
+/**
+ * Service for handling validation tasks, executing scheduled validations,
+ * and managing validation results.
+ */
+@Service
+public class ValidationService {
+    public static final String HEADER_KEY_VALUE_DELIMITER = &quot;|&quot;;
+<span class="fc" id="L46">    private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);</span>
+    private Instant lrStart;
+    private Instant lrEnd;
+    private String lrStartDateTime;
+    private int[] lrTaskCounts;
+    private HttpClient client;
+<span class="fc" id="L52">    private static Logger logger = LoggerFactory.getLogger(ValidationService.class);</span>
+
+    @Autowired
+    private EmailNotificationService notificationService;
+    @Autowired
+    private XMLValidationTaskDao taskReader;
+    @Autowired
+    private Environment env;
+
+    /**
+     * Constructor to initialize the HTTP client with default settings.
+     */
+<span class="fc" id="L64">    public ValidationService() {</span>
+<span class="fc" id="L65">        this.client = HttpClient.newBuilder()</span>
+<span class="fc" id="L66">            .connectTimeout(TIMEOUT_SECONDS)</span>
+<span class="fc" id="L67">            .followRedirects(HttpClient.Redirect.ALWAYS).build();</span>
+<span class="fc" id="L68">    }</span>
+
+    /**
+     * Executes validation tasks based on a cron schedule.
+     * Retrieves tasks, sends HTTP requests, and processes responses.
+     * Sends email notifications for any validation failures.
+     * Updates last run information with results of validation tasks.
+     *
+     * @throws FileNotFoundException if the validation tasks file is not found
+     * @throws XMLParseException if there is an error parsing the XML file
+     * @throws ConnectIOException if there is an error connecting to the target servers
+     */
+    @Scheduled(cron = &quot;${&quot; + RUN_SCHEDULE_PROPERTY + &quot;}&quot;)
+    public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException {
+<span class="fc" id="L82">        Instant start = Instant.now();</span>
+<span class="fc" id="L83">        String startDT = EventListenerService.getCurrentDateTime();</span>
+<span class="fc" id="L84">        int[] taskCounts = new int[4];</span>
+<span class="fc" id="L85">        List&lt;HttpRequest&gt; reqs = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L86">        List&lt;ValidationTask&gt; tasks = this.taskReader.getAll();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        for (ValidationTask task : tasks) {</span>
+<span class="fc" id="L88">            HttpRequest.Builder req = HttpRequest.newBuilder();</span>
+<span class="fc" id="L89">            req.uri(URI.create(task.reqURL()));</span>
+<span class="fc" id="L90">            task.reqHeaders().forEach(h -&gt; req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));</span>
+<span class="fc" id="L91">            req.timeout(TIMEOUT_SECONDS);</span>
+<span class="fc" id="L92">            reqs.add(req.build());</span>
+<span class="fc" id="L93">        }</span>
+
+<span class="fc" id="L95">        List&lt;HttpResponse&lt;String&gt;&gt; resps = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L96">        List&lt;CompletableFuture&lt;HttpResponse&lt;String&gt;&gt;&gt; completableFutures = reqs.stream()</span>
+<span class="fc" id="L97">            .map(request -&gt; client.sendAsync(request, HttpResponse.BodyHandlers.ofString()))</span>
+<span class="fc" id="L98">            .toList();</span>
+<span class="fc" id="L99">        CompletableFuture&lt;List&lt;HttpResponse&lt;String&gt;&gt;&gt; combinedFutures = CompletableFuture</span>
+<span class="fc" id="L100">            .allOf(completableFutures.toArray(new CompletableFuture[0]))</span>
+<span class="fc" id="L101">            .thenApply(future -&gt; completableFutures.stream()</span>
+<span class="fc" id="L102">                .map(CompletableFuture::join)</span>
+<span class="fc" id="L103">                .toList()</span>
+            );
+        try {
+<span class="fc" id="L106">            resps = combinedFutures.get();</span>
+<span class="fc" id="L107">        } catch (InterruptedException | ExecutionException e) {</span>
+<span class="fc" id="L108">            logger.error(&quot;HTTPClient's request for the validation task could not be completed&quot;, e);</span>
+<span class="fc" id="L109">            taskCounts[3]++;</span>
+<span class="fc" id="L110">        }</span>
+
+<span class="fc" id="L112">        List&lt;String[]&gt; failures = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        for (int i = 0; i &lt; resps.size(); i++) {</span>
+<span class="fc" id="L114">            ValidationTask task = tasks.get(i);</span>
+<span class="fc" id="L115">            HttpResponse&lt;String&gt; res = resps.get(i);</span>
+<span class="fc" id="L116">            String logmsg = &quot;VALIDATION &quot;;</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">            if (!task.isValid(res.statusCode(), res.body())) {</span>
+<span class="fc" id="L118">                String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};</span>
+<span class="fc" id="L119">                failures.add(notifData);</span>
+<span class="fc" id="L120">                logmsg += &quot;FAILURE&quot;;</span>
+<span class="fc" id="L121">            } else {</span>
+<span class="fc" id="L122">                logmsg += &quot;OK&quot;;</span>
+<span class="fc" id="L123">                taskCounts[1]++;</span>
+            }
+<span class="fc" id="L125">            logger.info(logmsg + &quot; for: {}&quot;, task.reqURL());</span>
+        }
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (!failures.isEmpty()) {</span>
+<span class="fc" id="L128">            this.notificationService.sendVTaskErrorsNotification(failures);</span>
+        }
+<span class="fc" id="L130">        taskCounts[0] = tasks.size();</span>
+<span class="fc" id="L131">        taskCounts[2] = failures.size();</span>
+<span class="fc" id="L132">        this.lrTaskCounts = taskCounts;</span>
+<span class="fc" id="L133">        this.lrStartDateTime = startDT;</span>
+<span class="fc" id="L134">        this.lrStart = start;</span>
+<span class="fc" id="L135">        this.lrEnd = Instant.now();</span>
+<span class="fc" id="L136">    }</span>
+
+    /**
+     * Retrieves information about the last run of validation tasks.
+     *
+     * @return A map containing start time, time elapsed, total tasks, successful tasks,
+     * failed tasks, and if errors were encountered during the last run.
+     */
+    public Map&lt;String, String&gt; getLastRunInfo() {
+<span class="fc" id="L145">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        if (nonNull(this.lrEnd)) {</span>
+<span class="fc" id="L147">            res.put(START_TIME_KEY, this.lrStartDateTime);</span>
+<span class="fc" id="L148">            res.put(TIME_ELAPSED_KEY, String.valueOf(Duration.between(this.lrStart, this.lrEnd).getSeconds()));</span>
+<span class="fc" id="L149">            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));</span>
+<span class="fc" id="L150">            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));</span>
+<span class="fc" id="L151">            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));</span>
+<span class="fc" id="L152">            res.put(TASKS_ERRORS_KEY, String.valueOf(this.lrTaskCounts[3]));</span>
+        }
+
+<span class="fc" id="L155">        return res;</span>
+    }
+
+    /**
+     * Checks if the configuration is valid by validating the cron expression currently in use.
+     *
+     * @return true if the configuration is valid, false otherwise
+     */
+    public boolean isValidConfig() {
+<span class="fc" id="L164">        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));</span>
+    }
+
+    /**
+     * Validates a given cron expression.
+     *
+     * @param cronExpr Cron expression to validate
+     * @return true if the cron expression is valid, false otherwise
+     */
+    public boolean isValidCronExpression(String cronExpr) {
+<span class="fc" id="L174">        boolean ans = true;</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (!&quot;-&quot;.equals(cronExpr)) {</span>
+            try {
+<span class="fc" id="L177">                CronExpression.parse(cronExpr);</span>
+<span class="fc" id="L178">            } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L179">                ans = false;</span>
+<span class="fc" id="L180">            }</span>
+        }
+
+<span class="fc" id="L183">        return ans;</span>
+    }
+
+    /**
+     * Sets the HTTP client. Used for testing purposes.
+     *
+     * @param client HTTP client
+     */
+<span class="fc" id="L191">    void setClient(HttpClient client) { this.client = client; }</span>
+
+    /**
+     * Sets the email notification service. Used for testing purposes.
+     *
+     * @param service Email notification service
+     */
+<span class="fc" id="L198">    void setNotificationService(EmailNotificationService service) { this.notificationService = service; }</span>
+
+    /**
+     * Sets the XML validation task DAO. Used for testing purposes.
+     *
+     * @param taskReader XML validation task DAO
+     */
+<span class="fc" id="L205">    void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }</span>
+
+    /**
+     * Sets the logger. Used for testing purposes.
+     *
+     * @param logger Logger
+     */
+<span class="fc" id="L212">    void setLogger(Logger logger) { ValidationService.logger = logger; }</span>
+
+    /**
+     * Sets the environment. Used for testing purposes.
+     *
+     * @param env Environment
+     */
+<span class="fc" id="L219">    void setEnv(Environment env) { this.env = env; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

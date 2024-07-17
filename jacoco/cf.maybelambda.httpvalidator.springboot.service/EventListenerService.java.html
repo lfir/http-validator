@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventListenerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.service</a> &gt; <span class="el_source">EventListenerService.java</span></div><h1>EventListenerService.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import java.rmi.ConnectIOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Service to handle application lifecycle events and send notifications.
+ */
+@Service
+<span class="fc" id="L17">public class EventListenerService {</span>
+    private String startDateTime;
+
+    @Autowired
+    private EmailNotificationService mailServ;
+
+    /**
+     * Gets the current date and time formatted as per RFC 1123.
+     *
+     * @return The current date and time as a formatted string.
+     */
+    public static String getCurrentDateTime() {
+<span class="fc" id="L29">        return OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);</span>
+    }
+
+    /**
+     * Sets the application start time when the application is ready.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void setAppStartTime() {
+<span class="fc" id="L37">        this.startDateTime = getCurrentDateTime();</span>
+<span class="fc" id="L38">    }</span>
+
+    /**
+     * Sends a notification when the application is terminated.
+     *
+     * @throws ConnectIOException if there is an issue sending the notification.
+     */
+    @EventListener(ContextClosedEvent.class)
+    public void notifyThatAppTerminated() throws ConnectIOException {
+<span class="fc" id="L47">        this.mailServ.sendAppTerminatedNotification(getCurrentDateTime());</span>
+<span class="fc" id="L48">    }</span>
+
+    /**
+     * Gets the start date and time of the application.
+     *
+     * @return The start date and time as a string.
+     */
+    public String getStartDateTime() {
+<span class="fc" id="L56">        return this.startDateTime;</span>
+    }
+
+    /**
+     * Sets the email notification service. Used for testing purposes.
+     *
+     * @param service The email notification service to set.
+     */
+    void setNotificationService(EmailNotificationService service) {
+<span class="fc" id="L65">        this.mailServ = service;</span>
+<span class="fc" id="L66">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

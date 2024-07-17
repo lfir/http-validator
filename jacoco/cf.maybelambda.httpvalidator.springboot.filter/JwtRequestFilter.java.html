@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtRequestFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.filter</a> &gt; <span class="el_source">JwtRequestFilter.java</span></div><h1>JwtRequestFilter.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.filter;
+
+import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+/**
+ * Filter to intercept incoming requests and validate JWT tokens in the Authorization header.
+ */
+@Component
+<span class="fc" id="L18">public class JwtRequestFilter extends OncePerRequestFilter {</span>
+    public static final String AUTHORIZATION_HEADER_KEY = &quot;Authorization&quot;;
+
+    @Autowired
+    private JwtAuthenticationService authServ;
+
+    /**
+     * Filters incoming HTTP requests. If the JWT token in the Authorization header is valid, proceed with the filter chain.
+     * If token is invalid, send back unauthorized status response.
+     *
+     * @param request  HTTP servlet request
+     * @param response HTTP servlet response
+     * @param chain    Filter chain to proceed with the request
+     * @throws ServletException If a servlet-specific error occurs
+     * @throws IOException      If an I/O error occurs during filtering
+     */
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+        throws ServletException, IOException {
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (!authServ.isValidToken(request.getHeader(AUTHORIZATION_HEADER_KEY))) {</span>
+<span class="fc" id="L38">            response.reset();</span>
+<span class="fc" id="L39">            response.setStatus(401);</span>
+<span class="fc" id="L40">            response.getOutputStream().flush();</span>
+<span class="fc" id="L41">            response.getOutputStream().close();</span>
+        } else {
+<span class="fc" id="L43">            chain.doFilter(request, response);</span>
+        }
+<span class="fc" id="L45">    }</span>
+
+    /**
+     * Sets the authentication service used for validating JWT tokens.
+     *
+     * @param authenticationService JwtAuthenticationService instance
+     */
+    void setAuthenticationService(JwtAuthenticationService authenticationService) {
+<span class="fc" id="L53">        this.authServ = authenticationService;</span>
+<span class="fc" id="L54">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

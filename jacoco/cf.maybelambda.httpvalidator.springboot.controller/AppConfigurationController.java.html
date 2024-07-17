@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppConfigurationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.controller</a> &gt; <span class="el_source">AppConfigurationController.java</span></div><h1>AppConfigurationController.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.controller;
+
+import cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp;
+import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
+import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
+
+/**
+ * Controller for handling configuration updates of the application.
+ */
+@RestController
+@CrossOrigin
+<span class="fc" id="L26">public class AppConfigurationController {</span>
+    public static final String UPD_RUN_SCHEDULE_ENDPOINT = &quot;/api/validator/runschedule&quot;;
+    public static final String UPD_DATA_FILE_ENDPOINT = &quot;/api/validator/datafile&quot;;
+    public static final String CRON_EXPRESSION_KEY = &quot;cron_expression&quot;;
+    public static final String INVALID_CRON_EXPRESSION_ERROR_MSG = &quot;Invalid Cron Expression&quot;;
+    public static final String INVALID_DATA_FILE_ERROR_MSG = &quot;Invalid Data File&quot;;
+    public static final String UPD_DATA_FILE_ERROR_MSG = &quot;Error updating Data File&quot;;
+
+    @Autowired
+    private ValidationService valServ;
+    @Autowired
+    private XMLValidationTaskDao dao;
+
+    /**
+     * Updates the validator run schedule based on the provided cron expression.
+     * Returns bad request status with error message for invalid expression.
+     *
+     * @param body The request body containing the cron expression.
+     * @return ResponseEntity indicating success or failure of the update operation.
+     */
+    @PutMapping(UPD_RUN_SCHEDULE_ENDPOINT)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; updateValidatorRunSchedule(@RequestBody Map&lt;String, String&gt; body) {
+        ResponseEntity&lt;Map&lt;String, String&gt;&gt; res;
+<span class="fc" id="L49">        String expr = body.get(CRON_EXPRESSION_KEY);</span>
+
+        // Validate the cron expression and restart the application context with the new schedule
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (this.valServ.isValidCronExpression(expr)) {</span>
+<span class="fc" id="L53">            HTTPValidatorWebApp.restartAppContextWithNewRunSchedule(expr);</span>
+<span class="fc" id="L54">            res = ResponseEntity.ok(null);</span>
+        } else {
+<span class="fc" id="L56">            Map&lt;String, String&gt; resBody = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L57">            resBody.put(ERROR_VALUE.toLowerCase(), INVALID_CRON_EXPRESSION_ERROR_MSG);</span>
+<span class="fc" id="L58">            res = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resBody);</span>
+        }
+
+<span class="fc" id="L61">        return res;</span>
+    }
+
+    /**
+     * Updates the validator data file with the contents from the provided multipart file.
+     * Returns internal server error status with error message for data file update failure (IO error).
+     * Returns bad request status with error message for invalid data file.
+     *
+     * @param file The multipart file containing the updated data.
+     * @return ResponseEntity indicating success or failure of the update operation.
+     */
+    @PutMapping(UPD_DATA_FILE_ENDPOINT)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; updateValidatorDataFile(@RequestBody MultipartFile file) {
+        ResponseEntity&lt;Map&lt;String, String&gt;&gt; res;
+<span class="fc" id="L75">        res = ResponseEntity.ok(null);</span>
+<span class="fc" id="L76">        Map&lt;String, String&gt; resBody = new HashMap&lt;&gt;();</span>
+
+        try {
+<span class="fc" id="L79">            this.dao.updateDataFile(file);</span>
+<span class="fc" id="L80">        } catch (IOException e) {</span>
+<span class="fc" id="L81">            resBody.put(ERROR_VALUE.toLowerCase(), UPD_DATA_FILE_ERROR_MSG);</span>
+<span class="fc" id="L82">            res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resBody);</span>
+<span class="fc" id="L83">        } catch (Exception e) {</span>
+<span class="fc" id="L84">            resBody.put(ERROR_VALUE.toLowerCase(), INVALID_DATA_FILE_ERROR_MSG);</span>
+<span class="fc" id="L85">            res = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resBody);</span>
+<span class="fc" id="L86">        }</span>
+
+<span class="fc" id="L88">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

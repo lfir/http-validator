@@ -1,0 +1,6 @@
+cf.maybelambda.httpvalidator.springboot
+cf.maybelambda.httpvalidator.springboot.controller
+cf.maybelambda.httpvalidator.springboot.filter
+cf.maybelambda.httpvalidator.springboot.model
+cf.maybelambda.httpvalidator.springboot.persistence
+cf.maybelambda.httpvalidator.springboot.service

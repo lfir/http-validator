@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HTTPValidatorWebApp.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot</a> &gt; <span class="el_source">HTTPValidatorWebApp.java</span></div><h1>HTTPValidatorWebApp.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot;
+
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Main class for starting the HTTP Validator web application.
+ * Finds components, reads configuration, and starts the web server.
+ */
+@SpringBootApplication
+@EnableScheduling
+<span class="fc" id="L19">public class HTTPValidatorWebApp {</span>
+    public static final String RUN_SCHEDULE_PROPERTY = &quot;cron.expression&quot;;
+    private static ConfigurableApplicationContext context;
+
+    /**
+     * Main method to run the Spring Boot application.
+     * @param args Command line arguments
+     */
+    public static void main(String[] args) {
+<span class="fc" id="L28">        context = SpringApplication.run(HTTPValidatorWebApp.class, args);</span>
+<span class="fc" id="L29">    }</span>
+
+    /**
+     * Restarts the application context with a new cron expression for scheduling tasks.
+     * This method creates a new thread to close the current context and restart the application
+     * with updated arguments that override the expression previously used.
+     * @param cronExpression New cron expression
+     */
+    public static void restartAppContextWithNewRunSchedule(String cronExpression) {
+<span class="fc" id="L38">        String[] origArgs = context.getBean(ApplicationArguments.class).getSourceArgs();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        List&lt;String&gt; args = new ArrayList&lt;&gt;(Arrays.stream(origArgs).filter(a -&gt; !a.contains(RUN_SCHEDULE_PROPERTY)).toList());</span>
+<span class="fc" id="L40">        args.add(&quot;--&quot; + RUN_SCHEDULE_PROPERTY + &quot;=&quot; + cronExpression);</span>
+
+<span class="fc" id="L42">        Thread thread = new Thread(() -&gt; {</span>
+<span class="fc" id="L43">            context.close();</span>
+<span class="fc" id="L44">            context = SpringApplication.run(HTTPValidatorWebApp.class, args.toArray(String[]::new));</span>
+<span class="fc" id="L45">        });</span>
+
+<span class="fc" id="L47">        thread.setDaemon(false);</span>
+<span class="fc" id="L48">        thread.start();</span>
+<span class="fc" id="L49">    }</span>
+
+    /**
+     * Sets the application context. Used for testing purposes.
+     * @param context Application context
+     */
+    static void setContext(ConfigurableApplicationContext context) {
+<span class="fc" id="L56">        HTTPValidatorWebApp.context = context;</span>
+<span class="fc" id="L57">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

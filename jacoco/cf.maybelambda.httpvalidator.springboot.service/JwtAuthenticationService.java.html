@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthenticationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.service</a> &gt; <span class="el_source">JwtAuthenticationService.java</span></div><h1>JwtAuthenticationService.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
+import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
+import static java.util.Objects.nonNull;
+
+/**
+ * Service for handling JWT authentication, including token generation,
+ * validation, and secret key management.
+ */
+@Service
+<span class="fc" id="L28">public class JwtAuthenticationService {</span>
+    public static final String BEARER_PREFIX = &quot;Bearer &quot;;
+    static final String SECRET_PROPERTY = &quot;jwt.signing.secret&quot;;
+<span class="fc" id="L31">    static Logger logger = LoggerFactory.getLogger(JwtAuthenticationService.class);</span>
+
+    @Autowired
+    private Environment env;
+
+    /**
+     * Generates a new encoded signing key.
+     *
+     * @return Base64-encoded signing key
+     */
+    static String getNewEncodedSigningKey() {
+<span class="fc" id="L42">        return Encoders.BASE64.encode(Jwts.SIG.HS512.key().build().getEncoded());</span>
+    }
+
+    /**
+     * Retrieves the Base64-encoded secret key from the environment properties.
+     *
+     * @return Secret key for signing JWT
+     */
+    private SecretKey getSecretKey() {
+<span class="fc" id="L51">        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(this.env.getProperty(SECRET_PROPERTY)));</span>
+    }
+
+    /**
+     * Generates a new signed JWT token that is valid for a specified number of hours.
+     *
+     * @param hours Number of hours the token is valid for
+     * @return JWT token
+     */
+    public String getNewTokenValidFor(int hours) {
+<span class="fc" id="L61">        return Jwts.builder()</span>
+<span class="fc" id="L62">            .issuedAt(new Date())</span>
+<span class="fc" id="L63">            .expiration(Date.from(Instant.now().plus(Duration.ofHours(hours))))</span>
+<span class="fc" id="L64">            .signWith(this.getSecretKey())</span>
+<span class="fc" id="L65">            .compact();</span>
+    }
+
+    /**
+     * Extracts all claims from a JWT token.
+     *
+     * @param token JWT token
+     * @return Jws containing the claims
+     */
+    private Jws&lt;Claims&gt; extractAllClaims(String token) {
+<span class="fc" id="L75">        return Jwts.parser()</span>
+<span class="fc" id="L76">            .verifyWith(this.getSecretKey())</span>
+<span class="fc" id="L77">            .build()</span>
+<span class="fc" id="L78">            .parseSignedClaims(token);</span>
+    }
+
+    /**
+     * Validates a JWT token from the Authorization header of an incoming request.
+     *
+     * @param authorizationHeader Authorization header containing the JWT token
+     * @return true if the token is valid, false otherwise or if the header is null or empty
+     */
+    public boolean isValidToken(String authorizationHeader) {
+<span class="fc" id="L88">        boolean ans = false;</span>
+<span class="fc bfc" id="L89" title="All 4 branches covered.">        if (nonNull(authorizationHeader) &amp;&amp; authorizationHeader.startsWith(BEARER_PREFIX)) {</span>
+<span class="fc" id="L90">            String token = authorizationHeader.replace(BEARER_PREFIX, &quot;&quot;);</span>
+            try {
+<span class="fc" id="L92">                Jws&lt;Claims&gt; claims = this.extractAllClaims(token);</span>
+<span class="fc" id="L93">                ans = true;</span>
+<span class="fc" id="L94">            } catch (JwtException e) {</span>
+<span class="fc" id="L95">                logger.warn(&quot;Invalid JWT received: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L96">            }</span>
+        }
+
+<span class="fc" id="L99">        return ans;</span>
+    }
+
+    /**
+     * Sets the environment. Used for testing purposes.
+     *
+     * @param env Environment
+     */
+<span class="fc" id="L107">    void setEnv(Environment env) { this.env = env; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

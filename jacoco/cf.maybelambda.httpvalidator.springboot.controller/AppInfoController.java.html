@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppInfoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.controller</a> &gt; <span class="el_source">AppInfoController.java</span></div><h1>AppInfoController.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.controller;
+
+import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
+import cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService;
+import cf.maybelambda.httpvalidator.springboot.service.EventListenerService;
+import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Controller for providing status and last run information of the application.
+ */
+@RestController
+@CrossOrigin
+<span class="fc" id="L22">public class AppInfoController {</span>
+    public static final String START_TIME_KEY = &quot;start_time&quot;;
+    public static final String TIME_ELAPSED_KEY = &quot;time_elapsed&quot;;
+    public static final String TASKS_TOTAL_KEY = &quot;tasks_total&quot;;
+    public static final String TASKS_OK_KEY = &quot;tasks_ok&quot;;
+    public static final String TASKS_FAILED_KEY = &quot;tasks_failed&quot;;
+    public static final String TASKS_ERRORS_KEY = &quot;tasks_errors&quot;;
+    public static final String NO_LASTRUN_DATA_ERROR_MSG = &quot;No validation tasks have been completed yet&quot;;
+    public static final String STATUS_ENDPOINT = &quot;/api/status&quot;;
+    public static final String LAST_RUN_ENDPOINT = &quot;/api/validator/lastrun&quot;;
+    public static final String ERROR_VALUE = &quot;ERROR&quot;;
+    static final String OK_VALUE = &quot;OK&quot;;
+    public static final String DATAFILE_STATUS_KEY = &quot;datafile_status&quot;;
+    public static final String CONFIG_STATUS_KEY = &quot;config_status&quot;;
+
+    @Autowired
+    private XMLValidationTaskDao dao;
+    @Autowired
+    private EmailNotificationService mailServ;
+    @Autowired
+    private ValidationService valServ;
+    @Autowired
+    private EventListenerService eventServ;
+
+    /**
+     * Retrieves the current status of the web application.
+     * Body: datafile and config status (i.e. parsable / valid) and app's start time.
+     *
+     * @return ResponseEntity containing the status information.
+     */
+    @GetMapping(STATUS_ENDPOINT)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; informWebAppStatus() {
+<span class="fc" id="L54">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L56">        res.put(START_TIME_KEY, eventServ.getStartDateTime());</span>
+
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        res.put(DATAFILE_STATUS_KEY, this.dao.isDataFileStatusOk() ? OK_VALUE : ERROR_VALUE);</span>
+
+<span class="fc" id="L60">        res.put(</span>
+            CONFIG_STATUS_KEY,
+<span class="fc bfc" id="L62" title="All 4 branches covered.">            this.mailServ.isValidConfig() &amp;&amp; this.valServ.isValidConfig() ? OK_VALUE : ERROR_VALUE</span>
+        );
+
+<span class="fc" id="L65">        return ResponseEntity.ok(res);</span>
+    }
+
+    /**
+     * Retrieves the information about the last run of the validation service.
+     * If no last run data is available, it returns a SERVICE UNAVAILABLE status with an error message.
+     *
+     * @return ResponseEntity containing the last run information or error message.
+     */
+    @GetMapping(LAST_RUN_ENDPOINT)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; informLastRunData() {
+        ResponseEntity&lt;Map&lt;String, String&gt;&gt; res;
+<span class="fc" id="L77">        Map&lt;String, String&gt; infoBody = this.valServ.getLastRunInfo();</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (infoBody.isEmpty()) {</span>
+<span class="fc" id="L79">            infoBody.put(ERROR_VALUE.toLowerCase(), NO_LASTRUN_DATA_ERROR_MSG);</span>
+<span class="fc" id="L80">            res = ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(infoBody);</span>
+        } else {
+<span class="fc" id="L82">            res = ResponseEntity.ok(infoBody);</span>
+        }
+
+<span class="fc" id="L85">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
