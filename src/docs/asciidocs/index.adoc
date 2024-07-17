@@ -1,0 +1,32 @@
+= HTTP Validator Documentation
+by Asta86
+
+:!last-update-label:
+
+Welcome to the HTTP Validator project! This page provides links to the various documentation sections for users and developers.
+
+== Getting Started
+
+To get started with the HTTP Validator, visit the link:./asciidoc/api-guide.html[Usage guide & API reference].
+It covers all required files and environment variables, available endpoints, request/response formats, and examples.
+
+If you have any questions or need further assistance, you can create an issue on the https://github.com/lfir/http-validator/issues[project repository].
+
+== Developer Documentation
+
+The **Javadoc Documentation** provides a comprehensive reference for developers who want to understand the internal workings of the HTTP Validator.
+It includes descriptions of all classes and methods.
+
+* link:./apidocs/index.html[Javadoc Documentation]
+
+The **Test Coverage Report** gives insights into how well the code is tested. It highlights the areas with good test coverage
+and the parts that need more attention.
+
+* link:./jacoco/index.html[Test Coverage Report]
+
+**Dependency graph** shows the main third-party libraries used by the project and their version.
+
+* https://github.com/lfir/http-validator/network/dependencies[Dependency graph]
+
+
+==== Thank you for using the HTTP Validator!
