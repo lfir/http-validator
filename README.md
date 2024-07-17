@@ -13,7 +13,7 @@
 
 For more details check the following site:
 
-### [Usage guide & API reference](https://lfir.github.io/http-validator/api-guide.html)
+### [Usage guide & API reference](https://lfir.github.io/http-validator/asciidoc/api-guide.html)
 
 ### Next steps
 
