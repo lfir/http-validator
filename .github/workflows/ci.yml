@@ -40,10 +40,9 @@ jobs:
 
       - name: Deploy to GitHub Pages
         if: success() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        run: mv target/site/asciidoc/index.html target/site/
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/site
           publish_branch: gh-pages
-          post_script: |
-            mv target/site/asciidoc/index.html target/site/
