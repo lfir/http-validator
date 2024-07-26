@@ -59,6 +59,7 @@ public class JwtAuthenticationService {
      */
     public String getNewTokenValidFor(int hours) {
         return Jwts.builder()
+            .issuer(this.getClass().getCanonicalName())
             .issuedAt(new Date())
             .expiration(Date.from(Instant.now().plus(Duration.ofHours(hours))))
             .signWith(this.getSecretKey())
@@ -90,7 +91,7 @@ public class JwtAuthenticationService {
             String token = authorizationHeader.replace(BEARER_PREFIX, "");
             try {
                 Jws<Claims> claims = this.extractAllClaims(token);
-                ans = true;
+                ans = this.getClass().getCanonicalName().equals(claims.getPayload().getIssuer());
             } catch (JwtException e) {
                 logger.warn("Invalid JWT received: {}", e.getMessage());
             }

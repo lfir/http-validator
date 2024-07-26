@@ -1,5 +1,8 @@
 package cf.maybelambda.httpvalidator.springboot.service;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,7 +10,13 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.env.Environment;
 
+import javax.crypto.SecretKey;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
 import static cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService.BEARER_PREFIX;
+import static cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService.SECRET_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -62,5 +71,29 @@ public class JwtAuthenticationServiceTests {
     @ValueSource(strings = {"Other header value"})
     void isValidTokenReturnsFalseWhenAuthHeaderIsNullOrDoesNotHaveBearerPrefix(String authHeader) {
         assertThat(this.authServ.isValidToken(authHeader)).isFalse();
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"Different Issuer"})
+    void isValidTokenReturnsFalseWhenDifferentIssuerOrNoIssuer(String issuer) {
+        Date expiry = Date.from(Instant.now().plus(Duration.ofHours(1)));
+        SecretKey sk = Keys.hmacShaKeyFor(Decoders.BASE64.decode(this.env.getProperty(SECRET_PROPERTY)));
+
+        String tokenA = Jwts.builder()
+            .issuer(issuer)
+            .issuedAt(new Date())
+            .expiration(expiry)
+            .signWith(sk)
+            .compact();
+
+        String tokenB = Jwts.builder()
+            .issuedAt(new Date())
+            .expiration(expiry)
+            .signWith(sk)
+            .compact();
+
+        assertThat(this.authServ.isValidToken(BEARER_PREFIX + tokenA)).isFalse();
+        assertThat(this.authServ.isValidToken(BEARER_PREFIX + tokenB)).isFalse();
     }
 }

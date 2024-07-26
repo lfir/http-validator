@@ -59,7 +59,7 @@ public class ValidationService {
     private Environment env;
 
     /**
-     * Constructor to initialize the HTTP client with default settings.
+     * Constructor to initialize the HTTP client with default connection-timeout and follow-redirects settings.
      */
     public ValidationService() {
         this.client = HttpClient.newBuilder()
@@ -75,7 +75,7 @@ public class ValidationService {
      *
      * @throws FileNotFoundException if the validation tasks file is not found
      * @throws XMLParseException if there is an error parsing the XML file
-     * @throws ConnectIOException if there is an error connecting to the target servers
+     * @throws ConnectIOException if there is an error sending notification email
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
     public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException {
@@ -198,7 +198,7 @@ public class ValidationService {
     void setNotificationService(EmailNotificationService service) { this.notificationService = service; }
 
     /**
-     * Sets the XML validation task DAO. Used for testing purposes.
+     * Sets the validation task reader service. Used for testing purposes.
      *
      * @param taskReader XML validation task DAO
      */
@@ -212,7 +212,7 @@ public class ValidationService {
     void setLogger(Logger logger) { ValidationService.logger = logger; }
 
     /**
-     * Sets the environment. Used for testing purposes.
+     * Sets the environment object. Used for testing purposes.
      *
      * @param env Environment
      */
