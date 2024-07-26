@@ -5,25 +5,53 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXParseException;
 
-<span class="fc" id="L8">public class XMLErrorHandler implements ErrorHandler {</span>
-<span class="fc" id="L9">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
+/**
+ * Custom error handler for XML schema validation errors.
+ */
+<span class="fc" id="L11">public class XMLErrorHandler implements ErrorHandler {</span>
+<span class="fc" id="L12">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
     private static final String logmsg = &quot;Warning during Schema Validation of the datafile&quot;;
 
+    /**
+     * Handles warnings encountered during XML schema validation.
+     * The exception is logged but not thrown again.
+     *
+     * @param e The warning exception.
+     */
     @Override
     public void warning(SAXParseException e) {
-<span class="fc" id="L14">        logger.warn(logmsg, e);</span>
-<span class="fc" id="L15">    }</span>
+<span class="fc" id="L23">        logger.warn(logmsg, e);</span>
+<span class="fc" id="L24">    }</span>
 
+    /**
+     * Handles errors encountered during XML schema validation.
+     * This method rethrows the exception to indicate a validation error.
+     *
+     * @param e The error exception.
+     * @throws SAXParseException Always thrown to indicate a validation error.
+     */
     @Override
     public void error(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L19">        throw e;</span>
+<span class="fc" id="L35">        throw e;</span>
     }
 
+    /**
+     * Handles fatal errors encountered during XML schema validation.
+     * This method rethrows the exception to indicate a critical validation error.
+     *
+     * @param e The fatal error exception.
+     * @throws SAXParseException Always thrown to indicate a critical validation error.
+     */
     @Override
     public void fatalError(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L24">        throw e;</span>
+<span class="fc" id="L47">        throw e;</span>
     }
 
-<span class="fc" id="L27">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
+    /**
+     * Sets a custom logger for the XMLErrorHandler class. Used for tests.
+     *
+     * @param logger The logger to be used.
+     */
+<span class="fc" id="L55">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
