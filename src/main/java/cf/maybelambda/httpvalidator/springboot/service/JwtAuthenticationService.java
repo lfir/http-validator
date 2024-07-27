@@ -106,4 +106,11 @@ public class JwtAuthenticationService {
      * @param env Environment
      */
     void setEnv(Environment env) { this.env = env; }
+
+    /**
+     * Sets the logger; used for testing purposes.
+     *
+     * @param logger The logger to set.
+     */
+    void setLogger(Logger logger) { JwtAuthenticationService.logger = logger; }
 }
