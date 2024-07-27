@@ -94,7 +94,7 @@ public class JwtAuthenticationServiceTests {
                 // For example, if the character is '3', charAt(start) - '0' results in 51 - 48, which is 3.
                 // Then increments the digit by 1 and takes the result modulo 10 to handle the case where the digit is 9,
                 // which is followed by 0.
-                String.valueOf((char) (header.charAt(start) - '0' + 1) % 10)
+                String.valueOf((header.charAt(start) - '0' + 1) % 10)
             )
             .concat(header.substring(start + 1));
 
