@@ -4,7 +4,7 @@ http-validator,cf.maybelambda.httpvalidator.springboot.filter,JwtRequestFilter,0
 http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLErrorHandler,0,19,0,0,0,7,0,6,0,6
 http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLValidationTaskDao,0,208,0,6,0,51,0,14,0,11
 http-validator,cf.maybelambda.httpvalidator.springboot.service,ValidationService,0,337,0,12,0,77,0,20,0,14
-http-validator,cf.maybelambda.httpvalidator.springboot.service,JwtAuthenticationService,0,95,0,4,0,24,0,10,0,8
+http-validator,cf.maybelambda.httpvalidator.springboot.service,JwtAuthenticationService,0,98,0,4,0,25,0,11,0,9
 http-validator,cf.maybelambda.httpvalidator.springboot.service,EmailNotificationService,0,202,0,12,0,43,0,19,0,13
 http-validator,cf.maybelambda.httpvalidator.springboot.service,EventListenerService,0,23,0,0,0,9,0,6,0,6
 http-validator,cf.maybelambda.httpvalidator.springboot,HTTPValidatorWebApp,0,64,0,2,0,15,0,8,0,7
