@@ -325,3 +325,5 @@ Restarting the application manually after a change to this file is required so t
 discrete, text-only data like plaintext, CSV, HTML, JSON, etc.
 - When the run schedule is updated from the API WebApplicationContext is restarted automatically to begin
 using it (PID remains the same, beans & variables like `start_time` are re-initialized).
+- If a network error occurs that prevents a task from completing a notification email is sent about that, but at this
+point no more details are provided regarding the issue (i.e. if the connection was rejected or it timed out).
