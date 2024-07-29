@@ -2,6 +2,7 @@ package cf.maybelambda.httpvalidator.springboot.service;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
+import cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +27,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import static cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp.RUN_SCHEDULE_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
-import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
@@ -76,12 +77,14 @@ public class ValidationService {
      * @throws FileNotFoundException if the validation tasks file is not found
      * @throws XMLParseException if there is an error parsing the XML file
      * @throws ConnectIOException if there is an error sending notification email
+     * @throws ExecutionException when an error occurs while running the HTTP requests
+     * @throws InterruptedException when interrupted before completing the HTTP requests
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
-    public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException {
+    public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException, ExecutionException, InterruptedException {
         Instant start = Instant.now();
         String startDT = EventListenerService.getCurrentDateTime();
-        int[] taskCounts = new int[4];
+        int[] taskCounts = new int[3];
         List<HttpRequest> reqs = new ArrayList<>();
         List<ValidationTask> tasks = this.taskReader.getAll();
         for (ValidationTask task : tasks) {
@@ -92,43 +95,38 @@ public class ValidationService {
             reqs.add(req.build());
         }
 
-        List<HttpResponse<String>> resps = new ArrayList<>();
-        List<CompletableFuture<HttpResponse<String>>> completableFutures = reqs.stream()
-            .map(request -> client.sendAsync(request, HttpResponse.BodyHandlers.ofString()))
+        List<HttpSendOutcomeWrapper> results = new ArrayList<>(reqs.size());
+        IntStream.range(0, reqs.size()).forEach(i -> results.add(null));
+        // Use the index of each request to store the corresponding response or exception
+        List<CompletableFuture<Void>> futures = IntStream.range(0, reqs.size())
+            .mapToObj(i -> client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())
+                .thenAccept(res -> results.set(i, new HttpSendOutcomeWrapper(res)))
+                .exceptionally(e -> {
+                    results.set(i, new HttpSendOutcomeWrapper(e));
+                    return null;
+                }))
             .toList();
-        CompletableFuture<List<HttpResponse<String>>> combinedFutures = CompletableFuture
-            .allOf(completableFutures.toArray(new CompletableFuture[0]))
-            .thenApply(future -> completableFutures.stream()
-                .map(CompletableFuture::join)
-                .toList()
-            );
-        try {
-            resps = combinedFutures.get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("HTTPClient's request for the validation task could not be completed", e);
-            taskCounts[3]++;
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
 
         List<String[]> failures = new ArrayList<>();
-        for (int i = 0; i < resps.size(); i++) {
+        for (int i = 0; i < results.size(); i++) {
             ValidationTask task = tasks.get(i);
-            HttpResponse<String> res = resps.get(i);
+            HttpSendOutcomeWrapper res = results.get(i);
             String logmsg = "VALIDATION ";
-            if (!task.isValid(res.statusCode(), res.body())) {
-                String[] notifData = {task.reqURL(), String.valueOf(res.statusCode()), res.body()};
-                failures.add(notifData);
-                logmsg += "FAILURE";
-            } else {
+            if (res.isWholeResponse() && task.isValid(res.getStatusCode(), res.getBody())) {
                 logmsg += "OK";
                 taskCounts[1]++;
+            } else {
+                failures.add(new String[]{task.reqURL(), String.valueOf(res.getStatusCode()), res.getBody()});
+                logmsg += "FAILURE";
+                taskCounts[2]++;
             }
-            logger.info(logmsg + " for: {}", task.reqURL());
+            logger.info(logmsg + " for: " + task.reqURL());
         }
         if (!failures.isEmpty()) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
         taskCounts[0] = tasks.size();
-        taskCounts[2] = failures.size();
         this.lrTaskCounts = taskCounts;
         this.lrStartDateTime = startDT;
         this.lrStart = start;
@@ -138,8 +136,7 @@ public class ValidationService {
     /**
      * Retrieves information about the last run of validation tasks.
      *
-     * @return A map containing start time, time elapsed, total tasks, successful tasks,
-     * failed tasks, and if errors were encountered during the last run.
+     * @return A map containing start time, time elapsed, total tasks, successful tasks and failed tasks.
      */
     public Map<String, String> getLastRunInfo() {
         Map<String, String> res = new HashMap<>();
@@ -149,7 +146,6 @@ public class ValidationService {
             res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));
             res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));
             res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));
-            res.put(TASKS_ERRORS_KEY, String.valueOf(this.lrTaskCounts[3]));
         }
 
         return res;

@@ -23,7 +23,6 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoControll
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.NO_LASTRUN_DATA_ERROR_MSG;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.STATUS_ENDPOINT;
-import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
@@ -60,7 +59,6 @@ public class AppInfoControllerIntegrationTests {
     public static final String TASKS_TOTAL_DESCR = "The total number of tasks to be processed in the last run";
     public static final String TASKS_OK_DESCR = "The number of tasks with expected results";
     public static final String TASKS_FAILED_DESCR = "The number of tasks with invalid results in the last run";
-    public static final String TASKS_ERRORS_DESCR = "`0` if no errors occurred while conducting the requests (i.e. timeout), `1` otherwise";
     private String testsToken;
     private MockMvc mockMvc;
 
@@ -134,8 +132,7 @@ public class AppInfoControllerIntegrationTests {
                         fieldWithPath(TIME_ELAPSED_KEY).description(TIME_ELAPSED_DESCR),
                         fieldWithPath(TASKS_TOTAL_KEY).description(TASKS_TOTAL_DESCR),
                         fieldWithPath(TASKS_OK_KEY).description(TASKS_OK_DESCR),
-                        fieldWithPath(TASKS_FAILED_KEY).description(TASKS_FAILED_DESCR),
-                        fieldWithPath(TASKS_ERRORS_KEY).description(TASKS_ERRORS_DESCR)
+                        fieldWithPath(TASKS_FAILED_KEY).description(TASKS_FAILED_DESCR)
                     )
                 )
             );

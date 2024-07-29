@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.START_TIME_KEY;
-import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_ERRORS_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_FAILED_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
@@ -79,7 +78,7 @@ public class ValidationServiceTests {
     }
 
     @Test
-    void whenExceptionOccursDuringExecValidationsRequestErrorIsLogged() throws Exception {
+    void whenExceptionOccursDuringExecValidationsRequestNotificationIsSent() throws Exception {
         given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .willReturn(CompletableFuture.failedFuture(new InterruptedException("Simulated Exception")));
 
@@ -91,7 +90,7 @@ public class ValidationServiceTests {
         this.vs.execValidations();
 
         assertEquals(1, this.tasks.get(0).reqHeaders().size());
-        verify(this.logger).error(anyString(), any(Exception.class));
+        verify(this.ns).sendVTaskErrorsNotification(anyList());
     }
 
     @Test
@@ -106,7 +105,7 @@ public class ValidationServiceTests {
         this.vs.execValidations();
 
         assertThat(this.dao.getAll().get(0).reqHeaders().isEmpty()).isTrue();
-        verify(this.logger).info(anyString(), anyString());
+        verify(this.logger).info(anyString());
     }
 
     @Test
@@ -121,7 +120,7 @@ public class ValidationServiceTests {
         this.vs.execValidations();
 
         assertThat(this.dao.getAll()).isNotEmpty();
-        verify(this.logger).info(anyString(), anyString());
+        verify(this.logger).info(anyString());
     }
 
     @ParameterizedTest
@@ -162,7 +161,6 @@ public class ValidationServiceTests {
         assertThat(res.containsKey(TASKS_TOTAL_KEY)).isTrue();
         assertThat(res.containsKey(TASKS_OK_KEY)).isTrue();
         assertThat(res.containsKey(TASKS_FAILED_KEY)).isTrue();
-        assertThat(res.containsKey(TASKS_ERRORS_KEY)).isTrue();
         assertThat(res.get(TASKS_TOTAL_KEY)).isEqualTo(String.valueOf(1));
     }
 }
