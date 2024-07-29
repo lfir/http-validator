@@ -216,7 +216,7 @@ include::{snippets}/can-get-app-status/curl-request.adoc[]
 === Validation Tasks - Last Run data
 
 This endpoint provides summary information about results of the last run of the validation tasks, including start time,
-time elapsed, total tasks, tasks ok, tasks failed, and if errors occurred.
+time elapsed, number of total tasks, tasks ok and tasks failed.
 
 ==== Request Structure
 

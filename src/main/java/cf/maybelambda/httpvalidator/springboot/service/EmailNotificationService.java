@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.rmi.ConnectIOException;
 import java.util.List;
 
+import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
 import static io.micrometer.common.util.StringUtils.isBlank;
 import static io.micrometer.common.util.StringUtils.truncate;
 import static java.util.Objects.isNull;
@@ -49,9 +50,14 @@ public class EmailNotificationService {
         String res = "";
         for (String[] c : contents) {
             String p0 = BODY_LINE1 + c[0] + "\n";
-            String p1 = BODY_LINE2 + c[1] + "\n";
-            String p2 = BODY_LINE3 + (c[2] == null ? "" : truncate(c[2], 800, "..."));
-            res += p0 + p1 + p2 + "\n\n\n";
+            if (String.valueOf(NET_ERR_CODE).equals(c[1])) {
+                res += p0 + c[2];
+            } else {
+                String p1 = BODY_LINE2 + c[1] + "\n";
+                String p2 = BODY_LINE3 + (c[2] == null ? "" : truncate(c[2], 800, "..."));
+                res += p0 + p1 + p2;
+            }
+            res += "\n\n\n";
         }
 
         return res;

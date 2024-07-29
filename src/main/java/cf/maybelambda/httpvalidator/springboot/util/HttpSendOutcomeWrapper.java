@@ -15,9 +15,14 @@ import static java.util.Objects.nonNull;
 public class HttpSendOutcomeWrapper {
 
     /**
+     * Status code assigned to exceptional send results arising from network errors.
+     */
+    public static final int NET_ERR_CODE = -1;
+    /**
      * Message about a network error that occurred while attempting a request.
      */
-    static final String NET_ERR_MSG = "Network error. A connection to the server could not be established (unreachable / refused / timed out).";
+    public static final String NET_ERR_MSG = "Request was not completed: Network Error. A connection to the server "
+        + "could not be established (unreachable / refused) or it timed out.";
 
     private HttpResponse<String> res;
     private Throwable ex;
@@ -57,7 +62,7 @@ public class HttpSendOutcomeWrapper {
      * @return the HTTP status code or -1 if an exception occurred
      */
     public int getStatusCode() {
-        return isNull(this.ex) ? this.res.statusCode() : -1;
+        return isNull(this.ex) ? this.res.statusCode() : NET_ERR_CODE;
     }
 
     /**

@@ -19,6 +19,8 @@ import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationS
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE2;
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.FROM_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.TO_PROPERTY;
+import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
+import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_MSG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -70,6 +72,17 @@ public class EmailNotificationServiceTests {
 
         assertEquals(1500, ss[2].length());
         assertThat(ans.length()).isLessThan(900);
+    }
+
+    @Test
+    void buildMailBodyIncludesNetworkErrorMessageWhenNetworkErrorStatusCodeIsReceived() {
+        String[] ss0 = { "http://localhost", String.valueOf(NET_ERR_CODE), NET_ERR_MSG };
+        List<String[]> res = new ArrayList<>();
+        res.add(ss0);
+
+        String ans = this.mailServ.buildMailBody(res);
+
+        assertThat(ans.contains(NET_ERR_MSG)).isTrue();
     }
 
     @Test

@@ -77,8 +77,8 @@ public class ValidationService {
      * @throws FileNotFoundException if the validation tasks file is not found
      * @throws XMLParseException if there is an error parsing the XML file
      * @throws ConnectIOException if there is an error sending notification email
-     * @throws ExecutionException when an error occurs while running the HTTP requests
-     * @throws InterruptedException when interrupted before completing the HTTP requests
+     * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
+     * @throws InterruptedException when interrupted before completing all the requests
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
     public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException, ExecutionException, InterruptedException {
