@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpSendOutcomeWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.util</a> &gt; <span class="el_source">HttpSendOutcomeWrapper.java</span></div><h1>HttpSendOutcomeWrapper.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.util;
+
+import java.net.http.HttpResponse;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
+/**
+ * A utility wrapper class for handling outcomes of HTTP requests.
+ * &lt;p&gt;
+ * This class encapsulates either a successful HTTP response or an exception
+ * encountered during the request. It provides methods to query the state
+ * of the outcome and to retrieve relevant details.
+ */
+public class HttpSendOutcomeWrapper {
+
+    /**
+     * Status code assigned to exceptional send results arising from network errors.
+     */
+    public static final int NET_ERR_CODE = -1;
+    /**
+     * Message about a network error that occurred while attempting a request.
+     */
+    public static final String NET_ERR_MSG = &quot;Request was not completed: Network Error. A connection to the server &quot;
+        + &quot;could not be established (unreachable / refused) or it timed out.&quot;;
+
+    private HttpResponse&lt;String&gt; res;
+    private Throwable ex;
+
+    /**
+     * Constructs an instance wrapping a successful HTTP response.
+     *
+     * @param res the HTTP response
+     */
+<span class="fc" id="L35">    public HttpSendOutcomeWrapper(HttpResponse&lt;String&gt; res) {</span>
+<span class="fc" id="L36">        this.res = res;</span>
+<span class="fc" id="L37">    }</span>
+
+    /**
+     * Constructs an instance wrapping an exception encountered during the request.
+     *
+     * @param ex the exception
+     */
+<span class="fc" id="L44">    public HttpSendOutcomeWrapper(Throwable ex) {</span>
+<span class="fc" id="L45">        this.ex = ex;</span>
+<span class="fc" id="L46">    }</span>
+
+    /**
+     * Checks if the wrapper contains a complete HTTP response with a non-null body.
+     *
+     * @return true if the response and its body are non-null, false otherwise
+     */
+    public boolean isWholeResponse() {
+<span class="fc bfc" id="L54" title="All 4 branches covered.">        return nonNull(this.res) &amp;&amp; nonNull(this.res.body());</span>
+    }
+
+    /**
+     * Gets the status code of the HTTP response.
+     * &lt;p&gt;
+     * If an exception was encountered during the request, this method returns -1.
+     *
+     * @return the HTTP status code or -1 if an exception occurred
+     */
+    public int getStatusCode() {
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        return isNull(this.ex) ? this.res.statusCode() : NET_ERR_CODE;</span>
+    }
+
+    /**
+     * Gets the body of the HTTP response.
+     * &lt;p&gt;
+     * If an exception was encountered during the request, this method returns a predefined network error message.
+     *
+     * @return the body of the HTTP response or a network error message if an exception occurred
+     */
+    public String getBody() {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        return isNull(this.ex) ? this.res.body() : NET_ERR_MSG;</span>
+    }
+
+    /**
+     * Sets the HTTP response for this wrapper. Used for tests.
+     *
+     * @param res the HTTP response
+     */
+    void setResponse(HttpResponse&lt;String&gt; res) {
+<span class="fc" id="L85">        this.res = res;</span>
+<span class="fc" id="L86">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -4,3 +4,4 @@ cf.maybelambda.httpvalidator.springboot.filter
 cf.maybelambda.httpvalidator.springboot.model
 cf.maybelambda.httpvalidator.springboot.persistence
 cf.maybelambda.httpvalidator.springboot.service
+cf.maybelambda.httpvalidator.springboot.util
