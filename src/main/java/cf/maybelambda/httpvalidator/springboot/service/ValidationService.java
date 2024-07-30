@@ -107,7 +107,7 @@ public class ValidationService {
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
      */
-     List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException {
+    List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException {
         // Build HTTP requests from the validation tasks
         List<HttpRequest> reqs = new ArrayList<>();
         for (ValidationTask task : tasks) {
@@ -145,7 +145,7 @@ public class ValidationService {
      * @return an array of task counts, where index 0 is the total tasks, 1 is successful tasks, and 2 is failed tasks
      * @throws ConnectIOException if there is an error sending notification email
      */
-     int[] processRequestResultsAndNotify(List<ValidationTask> tasks, List<HttpSendOutcomeWrapper> results) throws ConnectIOException {
+    int[] processRequestResultsAndNotify(List<ValidationTask> tasks, List<HttpSendOutcomeWrapper> results) throws ConnectIOException {
         // Initialize task counts: [total tasks, successful tasks, failed tasks]
         int[] taskCounts = new int[3];
         // Set the total number of tasks
