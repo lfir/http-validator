@@ -69,10 +69,10 @@ public class ValidationService {
 <span class="fc" id="L69">    }</span>
 
     /**
-     * Executes validation tasks based on a cron schedule.
+     * Executes validation tasks periodically based on a cron schedule.
      * Retrieves tasks, sends HTTP requests, and processes responses.
-     * Sends email notifications for any validation failures.
-     * Updates last run information with results of validation tasks.
+     * Sends email notifications for any validation failures and
+     * updates information about the last run of validation tasks.
      *
      * @throws FileNotFoundException if the validation tasks file is not found
      * @throws XMLParseException if there is an error parsing the XML file
@@ -82,56 +82,98 @@ public class ValidationService {
      */
     @Scheduled(cron = &quot;${&quot; + RUN_SCHEDULE_PROPERTY + &quot;}&quot;)
     public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException, ExecutionException, InterruptedException {
-<span class="fc" id="L85">        Instant start = Instant.now();</span>
-<span class="fc" id="L86">        String startDT = EventListenerService.getCurrentDateTime();</span>
-<span class="fc" id="L87">        int[] taskCounts = new int[3];</span>
-<span class="fc" id="L88">        List&lt;HttpRequest&gt; reqs = new ArrayList&lt;&gt;();</span>
+        // Record the start date-time of the validation process
+<span class="fc" id="L86">        Instant start = Instant.now();</span>
+<span class="fc" id="L87">        String startDT = EventListenerService.getCurrentDateTime();</span>
+
 <span class="fc" id="L89">        List&lt;ValidationTask&gt; tasks = this.taskReader.getAll();</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        for (ValidationTask task : tasks) {</span>
-<span class="fc" id="L91">            HttpRequest.Builder req = HttpRequest.newBuilder();</span>
-<span class="fc" id="L92">            req.uri(URI.create(task.reqURL()));</span>
-<span class="fc" id="L93">            task.reqHeaders().forEach(h -&gt; req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));</span>
-<span class="fc" id="L94">            req.timeout(TIMEOUT_SECONDS);</span>
-<span class="fc" id="L95">            reqs.add(req.build());</span>
-<span class="fc" id="L96">        }</span>
+<span class="fc" id="L90">        List&lt;HttpSendOutcomeWrapper&gt; results = this.buildAndExecuteRequests(tasks);</span>
+        // Process the results and get the task counts
+<span class="fc" id="L92">        int[] taskCounts = this.processRequestResultsAndNotify(tasks, results);</span>
 
-<span class="fc" id="L98">        List&lt;HttpSendOutcomeWrapper&gt; results = new ArrayList&lt;&gt;(reqs.size());</span>
-<span class="fc" id="L99">        IntStream.range(0, reqs.size()).forEach(i -&gt; results.add(null));</span>
+        // Update task counts and timing information of the last run
+<span class="fc" id="L95">        this.lrTaskCounts = taskCounts;</span>
+<span class="fc" id="L96">        this.lrStartDateTime = startDT;</span>
+<span class="fc" id="L97">        this.lrStart = start;</span>
+<span class="fc" id="L98">        this.lrEnd = Instant.now();</span>
+<span class="fc" id="L99">    }</span>
+
+    /**
+     * Executes HTTP requests asynchronously and stores the resulting responses or exceptions.
+     * Builds the requests from the information in the provided tasks.
+     *
+     * @param tasks the list of validation tasks
+     * @return a list of HttpSendOutcomeWrapper objects containing the responses or exceptions
+     * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
+     * @throws InterruptedException when interrupted before completing all the requests
+     */
+     List&lt;HttpSendOutcomeWrapper&gt; buildAndExecuteRequests(List&lt;ValidationTask&gt; tasks) throws ExecutionException, InterruptedException {
+        // Build HTTP requests from the validation tasks
+<span class="fc" id="L112">        List&lt;HttpRequest&gt; reqs = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        for (ValidationTask task : tasks) {</span>
+<span class="fc" id="L114">            HttpRequest.Builder req = HttpRequest.newBuilder();</span>
+<span class="fc" id="L115">            req.uri(URI.create(task.reqURL()));</span>
+<span class="fc" id="L116">            task.reqHeaders().forEach(h -&gt; req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));</span>
+<span class="fc" id="L117">            req.timeout(TIMEOUT_SECONDS);</span>
+<span class="fc" id="L118">            reqs.add(req.build());</span>
+<span class="fc" id="L119">        }</span>
+
+<span class="fc" id="L121">        List&lt;HttpSendOutcomeWrapper&gt; results = new ArrayList&lt;&gt;(reqs.size());</span>
+<span class="fc" id="L122">        IntStream.range(0, reqs.size()).forEach(i -&gt; results.add(null));</span>
+        // Send the requests asynchronously and store the responses or exceptions in the results list
         // Use the index of each request to store the corresponding response or exception
-<span class="fc" id="L101">        List&lt;CompletableFuture&lt;Void&gt;&gt; futures = IntStream.range(0, reqs.size())</span>
-<span class="fc" id="L102">            .mapToObj(i -&gt; client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())</span>
-<span class="fc" id="L103">                .thenAccept(res -&gt; results.set(i, new HttpSendOutcomeWrapper(res)))</span>
-<span class="fc" id="L104">                .exceptionally(e -&gt; {</span>
-<span class="fc" id="L105">                    results.set(i, new HttpSendOutcomeWrapper(e));</span>
-<span class="fc" id="L106">                    return null;</span>
+<span class="fc" id="L125">        List&lt;CompletableFuture&lt;Void&gt;&gt; futures = IntStream.range(0, reqs.size())</span>
+<span class="fc" id="L126">            .mapToObj(i -&gt; client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())</span>
+<span class="fc" id="L127">                .thenAccept(res -&gt; results.set(i, new HttpSendOutcomeWrapper(res)))</span>
+<span class="fc" id="L128">                .exceptionally(e -&gt; {</span>
+<span class="fc" id="L129">                    results.set(i, new HttpSendOutcomeWrapper(e));</span>
+<span class="fc" id="L130">                    return null;</span>
                 }))
-<span class="fc" id="L108">            .toList();</span>
-<span class="fc" id="L109">        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();</span>
+<span class="fc" id="L132">            .toList();</span>
+        // Wait for all requests to complete
+<span class="fc" id="L134">        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();</span>
 
-<span class="fc" id="L111">        List&lt;String[]&gt; failures = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (int i = 0; i &lt; results.size(); i++) {</span>
-<span class="fc" id="L113">            ValidationTask task = tasks.get(i);</span>
-<span class="fc" id="L114">            HttpSendOutcomeWrapper res = results.get(i);</span>
-<span class="fc" id="L115">            String logmsg = &quot;VALIDATION &quot;;</span>
-<span class="fc bfc" id="L116" title="All 4 branches covered.">            if (res.isWholeResponse() &amp;&amp; task.isValid(res.getStatusCode(), res.getBody())) {</span>
-<span class="fc" id="L117">                logmsg += &quot;OK&quot;;</span>
-<span class="fc" id="L118">                taskCounts[1]++;</span>
+<span class="fc" id="L136">        return results;</span>
+    }
+
+    /**
+     * Processes the results of the HTTP requests, logging the outcomes.
+     * Sends notifications if there are any failures.
+     *
+     * @param tasks the list of validation tasks
+     * @param results the list of HttpSendOutcomeWrapper objects containing the responses or exceptions
+     * @return an array of task counts, where index 0 is the total tasks, 1 is successful tasks, and 2 is failed tasks
+     * @throws ConnectIOException if there is an error sending notification email
+     */
+     int[] processRequestResultsAndNotify(List&lt;ValidationTask&gt; tasks, List&lt;HttpSendOutcomeWrapper&gt; results) throws ConnectIOException {
+        // Initialize task counts: [total tasks, successful tasks, failed tasks]
+<span class="fc" id="L150">        int[] taskCounts = new int[3];</span>
+        // Set the total number of tasks
+<span class="fc" id="L152">        taskCounts[0] = tasks.size();</span>
+
+        // Iterate over the results and register the outcomes in the taskCounts and the log
+<span class="fc" id="L155">        List&lt;String[]&gt; failures = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (int i = 0; i &lt; results.size(); i++) {</span>
+<span class="fc" id="L157">            ValidationTask task = tasks.get(i);</span>
+<span class="fc" id="L158">            HttpSendOutcomeWrapper res = results.get(i);</span>
+<span class="fc" id="L159">            String logmsg = &quot;VALIDATION &quot;;</span>
+<span class="fc bfc" id="L160" title="All 4 branches covered.">            if (res.isWholeResponse() &amp;&amp; task.isValid(res.getStatusCode(), res.getBody())) {</span>
+<span class="fc" id="L161">                logmsg += &quot;OK&quot;;</span>
+<span class="fc" id="L162">                taskCounts[1]++;</span>
             } else {
-<span class="fc" id="L120">                failures.add(new String[]{task.reqURL(), String.valueOf(res.getStatusCode()), res.getBody()});</span>
-<span class="fc" id="L121">                logmsg += &quot;FAILURE&quot;;</span>
-<span class="fc" id="L122">                taskCounts[2]++;</span>
+<span class="fc" id="L164">                failures.add(new String[]{task.reqURL(), String.valueOf(res.getStatusCode()), res.getBody()});</span>
+<span class="fc" id="L165">                logmsg += &quot;FAILURE&quot;;</span>
+<span class="fc" id="L166">                taskCounts[2]++;</span>
             }
-<span class="fc" id="L124">            logger.info(logmsg + &quot; for: &quot; + task.reqURL());</span>
+<span class="fc" id="L168">            logger.info(logmsg + &quot; for: &quot; + task.reqURL());</span>
         }
-<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (!failures.isEmpty()) {</span>
-<span class="fc" id="L127">            this.notificationService.sendVTaskErrorsNotification(failures);</span>
+        // Send notification if there are any failures
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (!failures.isEmpty()) {</span>
+<span class="fc" id="L172">            this.notificationService.sendVTaskErrorsNotification(failures);</span>
         }
-<span class="fc" id="L129">        taskCounts[0] = tasks.size();</span>
-<span class="fc" id="L130">        this.lrTaskCounts = taskCounts;</span>
-<span class="fc" id="L131">        this.lrStartDateTime = startDT;</span>
-<span class="fc" id="L132">        this.lrStart = start;</span>
-<span class="fc" id="L133">        this.lrEnd = Instant.now();</span>
-<span class="fc" id="L134">    }</span>
+
+<span class="fc" id="L175">        return taskCounts;</span>
+    }
 
     /**
      * Retrieves information about the last run of validation tasks.
@@ -139,16 +181,16 @@ public class ValidationService {
      * @return A map containing start time, time elapsed, total tasks, successful tasks and failed tasks.
      */
     public Map&lt;String, String&gt; getLastRunInfo() {
-<span class="fc" id="L142">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L143" title="All 2 branches covered.">        if (nonNull(this.lrEnd)) {</span>
-<span class="fc" id="L144">            res.put(START_TIME_KEY, this.lrStartDateTime);</span>
-<span class="fc" id="L145">            res.put(TIME_ELAPSED_KEY, String.valueOf(Duration.between(this.lrStart, this.lrEnd).getSeconds()));</span>
-<span class="fc" id="L146">            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));</span>
-<span class="fc" id="L147">            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));</span>
-<span class="fc" id="L148">            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));</span>
+<span class="fc" id="L184">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (nonNull(this.lrEnd)) {</span>
+<span class="fc" id="L186">            res.put(START_TIME_KEY, this.lrStartDateTime);</span>
+<span class="fc" id="L187">            res.put(TIME_ELAPSED_KEY, String.valueOf(Duration.between(this.lrStart, this.lrEnd).getSeconds()));</span>
+<span class="fc" id="L188">            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));</span>
+<span class="fc" id="L189">            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));</span>
+<span class="fc" id="L190">            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));</span>
         }
 
-<span class="fc" id="L151">        return res;</span>
+<span class="fc" id="L193">        return res;</span>
     }
 
     /**
@@ -157,7 +199,7 @@ public class ValidationService {
      * @return true if the configuration is valid, false otherwise
      */
     public boolean isValidConfig() {
-<span class="fc" id="L160">        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));</span>
+<span class="fc" id="L202">        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));</span>
     }
 
     /**
@@ -167,16 +209,16 @@ public class ValidationService {
      * @return true if the cron expression is valid, false otherwise
      */
     public boolean isValidCronExpression(String cronExpr) {
-<span class="fc" id="L170">        boolean ans = true;</span>
-<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (!&quot;-&quot;.equals(cronExpr)) {</span>
+<span class="fc" id="L212">        boolean ans = true;</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">        if (!&quot;-&quot;.equals(cronExpr)) {</span>
             try {
-<span class="fc" id="L173">                CronExpression.parse(cronExpr);</span>
-<span class="fc" id="L174">            } catch (IllegalArgumentException e) {</span>
-<span class="fc" id="L175">                ans = false;</span>
-<span class="fc" id="L176">            }</span>
+<span class="fc" id="L215">                CronExpression.parse(cronExpr);</span>
+<span class="fc" id="L216">            } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L217">                ans = false;</span>
+<span class="fc" id="L218">            }</span>
         }
 
-<span class="fc" id="L179">        return ans;</span>
+<span class="fc" id="L221">        return ans;</span>
     }
 
     /**
@@ -184,34 +226,34 @@ public class ValidationService {
      *
      * @param client HTTP client
      */
-<span class="fc" id="L187">    void setClient(HttpClient client) { this.client = client; }</span>
+<span class="fc" id="L229">    void setClient(HttpClient client) { this.client = client; }</span>
 
     /**
      * Sets the email notification service. Used for testing purposes.
      *
      * @param service Email notification service
      */
-<span class="fc" id="L194">    void setNotificationService(EmailNotificationService service) { this.notificationService = service; }</span>
+<span class="fc" id="L236">    void setNotificationService(EmailNotificationService service) { this.notificationService = service; }</span>
 
     /**
      * Sets the validation task reader service. Used for testing purposes.
      *
      * @param taskReader XML validation task DAO
      */
-<span class="fc" id="L201">    void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }</span>
+<span class="fc" id="L243">    void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }</span>
 
     /**
      * Sets the logger. Used for testing purposes.
      *
      * @param logger Logger
      */
-<span class="fc" id="L208">    void setLogger(Logger logger) { ValidationService.logger = logger; }</span>
+<span class="fc" id="L250">    void setLogger(Logger logger) { ValidationService.logger = logger; }</span>
 
     /**
      * Sets the environment object. Used for testing purposes.
      *
      * @param env Environment
      */
-<span class="fc" id="L215">    void setEnv(Environment env) { this.env = env; }</span>
+<span class="fc" id="L257">    void setEnv(Environment env) { this.env = env; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

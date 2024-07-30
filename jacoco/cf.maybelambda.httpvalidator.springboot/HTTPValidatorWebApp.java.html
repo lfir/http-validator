@@ -41,8 +41,8 @@ import java.util.List;
 
 <span class="fc" id="L42">        Thread thread = new Thread(() -&gt; {</span>
 <span class="fc" id="L43">            context.close();</span>
-<span class="fc" id="L44">            context = SpringApplication.run(HTTPValidatorWebApp.class, args.toArray(String[]::new));</span>
-<span class="fc" id="L45">        });</span>
+<span class="pc" id="L44">            context = SpringApplication.run(HTTPValidatorWebApp.class, args.toArray(String[]::new));</span>
+<span class="nc" id="L45">        });</span>
 
 <span class="fc" id="L47">        thread.setDaemon(false);</span>
 <span class="fc" id="L48">        thread.start();</span>
