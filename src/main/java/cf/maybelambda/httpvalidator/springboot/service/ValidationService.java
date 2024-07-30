@@ -69,10 +69,10 @@ public class ValidationService {
     }
 
     /**
-     * Executes validation tasks based on a cron schedule.
+     * Executes validation tasks periodically based on a cron schedule.
      * Retrieves tasks, sends HTTP requests, and processes responses.
-     * Sends email notifications for any validation failures.
-     * Updates last run information with results of validation tasks.
+     * Sends email notifications for any validation failures and
+     * updates information about the last run of validation tasks.
      *
      * @throws FileNotFoundException if the validation tasks file is not found
      * @throws XMLParseException if there is an error parsing the XML file
@@ -82,11 +82,34 @@ public class ValidationService {
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
     public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException, ExecutionException, InterruptedException {
+        // Record the start date-time of the validation process
         Instant start = Instant.now();
         String startDT = EventListenerService.getCurrentDateTime();
-        int[] taskCounts = new int[3];
-        List<HttpRequest> reqs = new ArrayList<>();
+
         List<ValidationTask> tasks = this.taskReader.getAll();
+        List<HttpSendOutcomeWrapper> results = this.buildAndExecuteRequests(tasks);
+        // Process the results and get the task counts
+        int[] taskCounts = this.processRequestResultsAndNotify(tasks, results);
+
+        // Update task counts and timing information of the last run
+        this.lrTaskCounts = taskCounts;
+        this.lrStartDateTime = startDT;
+        this.lrStart = start;
+        this.lrEnd = Instant.now();
+    }
+
+    /**
+     * Executes HTTP requests asynchronously and stores the resulting responses or exceptions.
+     * Builds the requests from the information in the provided tasks.
+     *
+     * @param tasks the list of validation tasks
+     * @return a list of HttpSendOutcomeWrapper objects containing the responses or exceptions
+     * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
+     * @throws InterruptedException when interrupted before completing all the requests
+     */
+     List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException {
+        // Build HTTP requests from the validation tasks
+        List<HttpRequest> reqs = new ArrayList<>();
         for (ValidationTask task : tasks) {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
@@ -97,6 +120,7 @@ public class ValidationService {
 
         List<HttpSendOutcomeWrapper> results = new ArrayList<>(reqs.size());
         IntStream.range(0, reqs.size()).forEach(i -> results.add(null));
+        // Send the requests asynchronously and store the responses or exceptions in the results list
         // Use the index of each request to store the corresponding response or exception
         List<CompletableFuture<Void>> futures = IntStream.range(0, reqs.size())
             .mapToObj(i -> client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())
@@ -106,8 +130,28 @@ public class ValidationService {
                     return null;
                 }))
             .toList();
+        // Wait for all requests to complete
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
 
+        return results;
+    }
+
+    /**
+     * Processes the results of the HTTP requests, logging the outcomes.
+     * Sends notifications if there are any failures.
+     *
+     * @param tasks the list of validation tasks
+     * @param results the list of HttpSendOutcomeWrapper objects containing the responses or exceptions
+     * @return an array of task counts, where index 0 is the total tasks, 1 is successful tasks, and 2 is failed tasks
+     * @throws ConnectIOException if there is an error sending notification email
+     */
+     int[] processRequestResultsAndNotify(List<ValidationTask> tasks, List<HttpSendOutcomeWrapper> results) throws ConnectIOException {
+        // Initialize task counts: [total tasks, successful tasks, failed tasks]
+        int[] taskCounts = new int[3];
+        // Set the total number of tasks
+        taskCounts[0] = tasks.size();
+
+        // Iterate over the results and register the outcomes in the taskCounts and the log
         List<String[]> failures = new ArrayList<>();
         for (int i = 0; i < results.size(); i++) {
             ValidationTask task = tasks.get(i);
@@ -123,14 +167,12 @@ public class ValidationService {
             }
             logger.info(logmsg + " for: " + task.reqURL());
         }
+        // Send notification if there are any failures
         if (!failures.isEmpty()) {
             this.notificationService.sendVTaskErrorsNotification(failures);
         }
-        taskCounts[0] = tasks.size();
-        this.lrTaskCounts = taskCounts;
-        this.lrStartDateTime = startDT;
-        this.lrStart = start;
-        this.lrEnd = Instant.now();
+
+        return taskCounts;
     }
 
     /**
