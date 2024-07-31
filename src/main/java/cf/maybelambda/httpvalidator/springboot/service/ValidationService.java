@@ -45,8 +45,7 @@ import static java.util.Objects.nonNull;
 public class ValidationService {
     public static final String HEADER_KEY_VALUE_DELIMITER = "|";
     private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);
-    private Instant lrStart;
-    private Instant lrEnd;
+    private Duration lrTimeElapsed;
     private String lrStartDateTime;
     private int[] lrTaskCounts;
     private HttpClient client;
@@ -94,8 +93,7 @@ public class ValidationService {
         // Update task counts and timing information of the last run
         this.lrTaskCounts = taskCounts;
         this.lrStartDateTime = startDT;
-        this.lrStart = start;
-        this.lrEnd = Instant.now();
+        this.lrTimeElapsed = Duration.between(start, Instant.now());
     }
 
     /**
@@ -182,9 +180,9 @@ public class ValidationService {
      */
     public Map<String, String> getLastRunInfo() {
         Map<String, String> res = new HashMap<>();
-        if (nonNull(this.lrEnd)) {
+        if (nonNull(this.lrTimeElapsed)) {
             res.put(START_TIME_KEY, this.lrStartDateTime);
-            res.put(TIME_ELAPSED_KEY, String.valueOf(Duration.between(this.lrStart, this.lrEnd).getSeconds()));
+            res.put(TIME_ELAPSED_KEY, String.valueOf(this.lrTimeElapsed.getSeconds()));
             res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));
             res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));
             res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));
