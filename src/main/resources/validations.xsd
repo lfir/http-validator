@@ -1,50 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:simpleType name="urlText">
+        <xs:restriction base="xs:anyURI">
+            <xs:pattern value="https?://[\w;/?:@=+$,.!~*'|()%\-&amp;]+" />
+            <xs:minLength value="8" />
+            <xs:maxLength value="2000" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="bodyText">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="1000" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:element name="validations">
         <xs:complexType>
             <xs:sequence>
                 <xs:element maxOccurs="unbounded" name="validation">
                     <xs:complexType>
-                        <xs:attribute name="reqmethod" use="required">
-                            <xs:simpleType>
-                                <xs:restriction base="xs:integer">
-                                    <xs:minInclusive value="0" />
-                                    <xs:maxInclusive value="1" />
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                        <xs:attribute name="requrl" use="required">
-                            <xs:simpleType>
-                                <xs:restriction base="xs:anyURI">
-                                    <xs:pattern value="https?://[\w;/?:@=+$,.!~*'|()%\-&amp;]+" />
-                                    <xs:minLength value="8" />
-                                    <xs:maxLength value="2000" />
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                        <xs:attribute name="reqheaders" use="required">
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:pattern value="[a-zA-Z\d\-]+\|[^|^]+(\^[a-zA-Z\d\-]+\|[^|^]+)*|[*]{0}" />
-                                    <xs:maxLength value="4000" />
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                        <xs:attribute name="ressc" use="required">
-                            <xs:simpleType>
-                                <xs:restriction base="xs:integer">
-                                    <xs:minInclusive value="100" />
-                                    <xs:maxInclusive value="599" />
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                        <xs:attribute name="resbody" use="required">
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:maxLength value="1000" />
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
+                        <xs:sequence>
+                            <xs:element name="url">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="urlText">
+                                            <xs:attribute name="method" use="required">
+                                                <xs:simpleType>
+                                                    <xs:restriction base="xs:integer">
+                                                        <xs:minInclusive value="0" />
+                                                        <xs:maxInclusive value="1" />
+                                                    </xs:restriction>
+                                                </xs:simpleType>
+                                            </xs:attribute>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="header" minOccurs="0" maxOccurs="unbounded">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:pattern value="[a-zA-Z\d\-]+\|[^|]+" />
+                                        <xs:maxLength value="3000" />
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="reqbody" minOccurs="0" type="bodyText" />
+                            <xs:element name="response">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="bodyText">
+                                            <xs:attribute name="statuscode" use="required">
+                                                <xs:simpleType>
+                                                    <xs:restriction base="xs:integer">
+                                                        <xs:minInclusive value="100" />
+                                                        <xs:maxInclusive value="599" />
+                                                    </xs:restriction>
+                                                </xs:simpleType>
+                                            </xs:attribute>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>

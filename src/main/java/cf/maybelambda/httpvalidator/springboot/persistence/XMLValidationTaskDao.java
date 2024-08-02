@@ -1,7 +1,9 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
-import io.micrometer.common.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -28,9 +31,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
 
@@ -42,13 +43,13 @@ import static java.util.Objects.requireNonNull;
  */
 @Component
 public class XMLValidationTaskDao {
+    static final String URL_TAG = "url";
+    static final String RES_TAG = "response";
+    static final String REQ_BODY_TAG = "reqbody";
+    static final String HEADER_TAG = "header";
     static final String VALIDATION_TAG = "validation";
-    static final String REQ_METHOD_ATTR = "reqmethod";
-    static final String REQ_URL_ATTR = "requrl";
-    static final String REQ_HEADERS_ATTR = "reqheaders";
-    static final String HEADER_DELIMITER = "^";
-    static final String RES_SC_ATTR = "ressc";
-    static final String RES_BODY_ATTR = "resbody";
+    static final String REQ_METHOD_ATTR = "method";
+    static final String RES_SC_ATTR = "statuscode";
     static final String DATAFILE_PROPERTY = "datafile";
     private static final String SCHEMA_FILENAME = "validations.xsd";
     private DocumentBuilder xmlParser;
@@ -56,6 +57,8 @@ public class XMLValidationTaskDao {
 
     @Autowired
     private Environment env;
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * Constructs an instance of XMLValidationTaskDao.
@@ -148,23 +151,53 @@ public class XMLValidationTaskDao {
     public List<ValidationTask> getAll() throws XMLParseException, FileNotFoundException {
         List<ValidationTask> tasks = new ArrayList<>();
         NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
-
         for (int i = 0; i < validations.getLength(); i++) {
-            NamedNodeMap nm = validations.item(i).getAttributes();
-            List<String> headers = Arrays.stream(
-                nm.getNamedItem(REQ_HEADERS_ATTR).getTextContent().split(Pattern.quote(HEADER_DELIMITER))
-            ).filter(StringUtils::isNotEmpty).toList();
+            NodeList validation = validations.item(i).getChildNodes();
+            String method = null;
+            String url = null;
+            List<String> headers = new ArrayList<>();
+            JsonNode reqBody = this.mapper.nullNode();
+            String ressc = null;
+            String resbody = null;
 
-            ValidationTask v = new ValidationTask(
-                Integer.parseInt(nm.getNamedItem(REQ_METHOD_ATTR).getTextContent()),
-                nm.getNamedItem(REQ_URL_ATTR).getTextContent(),
-                headers,
-                Integer.parseInt(nm.getNamedItem(RES_SC_ATTR).getTextContent()),
-                nm.getNamedItem(RES_BODY_ATTR).getTextContent()
+            for (int j = 0; j < validation.getLength(); j++) {
+                Node childNode = validation.item(j);
+                NamedNodeMap attrs = childNode.getAttributes();
+                String name = childNode.getNodeName();
+                String content = childNode.getTextContent().trim();
+
+                if (URL_TAG.equals(name)) {
+                    method = attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent();
+                    url = content;
+                }
+                if (HEADER_TAG.equals(name)) {
+                    headers.add(content);
+                }
+                if (REQ_BODY_TAG.equals(name)) {
+                    try {
+                        reqBody = this.mapper.readTree(content);
+                    } catch (JsonProcessingException e) {
+                        String errmsg = "Invalid JSON content found in the data file";
+                        logger.error(errmsg, e);
+                        throw new XMLParseException(e, errmsg + "\n");
+                    }
+                }
+                if (RES_TAG.equals(name)) {
+                    ressc = attrs.getNamedItem(RES_SC_ATTR).getTextContent();
+                    resbody = content;
+                }
+            }
+
+            tasks.add(
+                new ValidationTask(
+                    Integer.parseInt(method),
+                    url,
+                    headers,
+                    Integer.parseInt(ressc),
+                    resbody
+                )
             );
-            tasks.add(v);
         }
-
         return tasks;
     }
 
@@ -200,4 +233,6 @@ public class XMLValidationTaskDao {
      * @param env The environment to set.
      */
     void setEnv(Environment env) { this.env = env; }
+
+    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }
 }

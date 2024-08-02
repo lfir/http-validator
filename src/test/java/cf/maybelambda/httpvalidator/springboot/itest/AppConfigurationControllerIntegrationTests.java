@@ -113,8 +113,10 @@ public class AppConfigurationControllerIntegrationTests {
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
-                            +    "<validation reqmethod=\"0\" requrl=\"http://example.com/api/test\" "
-                            +        "reqheaders=\"\" ressc=\"200\" resbody=\"\"/>"
+                            +    "<validation>"
+                            +        "<url method=\"0\">http://example.com/api/test</url>"
+                            +        "<response statuscode=\"200\" />"
+                            +    "</validation>"
                             + "</validations>";
 
         MockMultipartFile file = new MockMultipartFile(
@@ -142,8 +144,10 @@ public class AppConfigurationControllerIntegrationTests {
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
-                            +    "<validation reqmethod=\"25\" requrl=\"http://example.com/api/test\" "
-                            +        "reqheaders=\"\" ressc=\"200\" resbody=\"\"/>"
+                            +    "<validation>"
+                            +        "<url method=\"25\">http://example.com/api/test</url>"
+                            +        "<resbody statuscode=\"200\"></resbody>"
+                            +    "</validation>"
                             + "</validations>";
 
         MockMultipartFile file = new MockMultipartFile(
