@@ -18,6 +18,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.management.modelmbean.XMLParseException;
+import javax.swing.text.html.FormSubmitEvent.MethodType;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -153,12 +154,12 @@ public class XMLValidationTaskDao {
         NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
         for (int i = 0; i < validations.getLength(); i++) {
             NodeList validation = validations.item(i).getChildNodes();
-            String method = null;
+            MethodType method = null;
             String url = null;
             List<String> headers = new ArrayList<>();
             JsonNode reqBody = this.mapper.nullNode();
-            String ressc = null;
-            String resbody = null;
+            Integer resStatusCode = null;
+            String resBody = null;
 
             for (int j = 0; j < validation.getLength(); j++) {
                 Node childNode = validation.item(j);
@@ -167,7 +168,8 @@ public class XMLValidationTaskDao {
                 String content = childNode.getTextContent().trim();
 
                 if (URL_TAG.equals(name)) {
-                    method = attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent();
+                    int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());
+                    method = MethodType.values()[val];
                     url = content;
                 }
                 if (HEADER_TAG.equals(name)) {
@@ -177,25 +179,19 @@ public class XMLValidationTaskDao {
                     try {
                         reqBody = this.mapper.readTree(content);
                     } catch (JsonProcessingException e) {
-                        String errmsg = "Invalid JSON content found in the data file";
+                        String errmsg = "Invalid JSON content encountered in the data file";
                         logger.error(errmsg, e);
                         throw new XMLParseException(e, errmsg + "\n");
                     }
                 }
                 if (RES_TAG.equals(name)) {
-                    ressc = attrs.getNamedItem(RES_SC_ATTR).getTextContent();
-                    resbody = content;
+                    resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());
+                    resBody = content;
                 }
             }
 
             tasks.add(
-                new ValidationTask(
-                    Integer.parseInt(method),
-                    url,
-                    headers,
-                    Integer.parseInt(ressc),
-                    resbody
-                )
+                new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody)
             );
         }
         return tasks;
@@ -234,5 +230,10 @@ public class XMLValidationTaskDao {
      */
     void setEnv(Environment env) { this.env = env; }
 
+    /**
+     * Sets the object mapper; for testing purposes.
+     *
+     * @param mapper The ObjectMapper to set.
+     */
     void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }
 }

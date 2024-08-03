@@ -1,6 +1,7 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationT
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.RES_TAG;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.URL_TAG;
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.VALIDATION_TAG;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.GET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,6 +45,7 @@ import static org.mockito.Mockito.verify;
 
 public class XMLValidationTaskDaoTests {
     private final ObjectMapper mapper = mock(ObjectMapper.class);
+    private final JsonNode parsedReqBody = mock(JsonNode.class);
     private final Logger logger = mock(Logger.class);
     private final DocumentBuilder xmlParser = mock(DocumentBuilder.class);
     private final Document doc = mock(Document.class);
@@ -65,6 +68,8 @@ public class XMLValidationTaskDaoTests {
         this.taskDao = new XMLValidationTaskDao();
         this.taskDao.setXmlParser(this.xmlParser);
         this.taskDao.setLogger(logger);
+
+        given(this.mapper.nullNode()).willReturn(this.parsedReqBody);
         this.taskDao.setObjectMapper(this.mapper);
 
         given(this.env.getProperty(DATAFILE_PROPERTY)).willReturn("/dev/null");
@@ -113,13 +118,14 @@ public class XMLValidationTaskDaoTests {
         given(this.childNodes.item(2)).willReturn(this.reqbody);
         given(this.reqbody.getNodeName()).willReturn(REQ_BODY_TAG);
         given(this.reqbody.getTextContent()).willReturn("\"data\":[]");
+        given(this.mapper.readTree(anyString())).willReturn(this.parsedReqBody);
         // <response>
         given(this.response.getTextContent()).willReturn("valid body");
         given(this.childNodes.item(3)).willReturn(this.response);
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
-        assertEquals(Integer.parseInt(this.urlAttrs.getNamedItem(REQ_METHOD_ATTR).getTextContent()), ans.get(0).reqMethod());
+        assertEquals(GET, ans.get(0).reqMethod());
         assertEquals(this.url.getTextContent(), ans.get(0).reqURL());
         assertEquals(this.header.getTextContent(), ans.get(0).reqHeaders().get(0));
         assertEquals(Integer.parseInt(this.resBodyAttrs.getNamedItem(RES_SC_ATTR).getTextContent()), ans.get(0).validStatusCode());

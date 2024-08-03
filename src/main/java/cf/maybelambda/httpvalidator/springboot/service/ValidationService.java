@@ -3,6 +3,8 @@ package cf.maybelambda.httpvalidator.springboot.service;
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,9 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoControll
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_OK_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TASKS_TOTAL_KEY;
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.TIME_ELAPSED_KEY;
+import static java.net.http.HttpRequest.BodyPublishers.ofString;
 import static java.util.Objects.nonNull;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 
 /**
  * Service for handling validation tasks, executing scheduled validations,
@@ -57,6 +61,8 @@ public class ValidationService {
     private XMLValidationTaskDao taskReader;
     @Autowired
     private Environment env;
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * Constructor to initialize the HTTP client with default connection-timeout and follow-redirects settings.
@@ -73,14 +79,16 @@ public class ValidationService {
      * Sends email notifications for any validation failures and
      * updates information about the last run of validation tasks.
      *
-     * @throws FileNotFoundException if the validation tasks file is not found
+     * @throws FileNotFoundException if the data file is not found
      * @throws XMLParseException if there is an error parsing the XML file
+     * @throws JsonProcessingException when a validation task contains invalid JSON content
      * @throws ConnectIOException if there is an error sending notification email
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
-    public void execValidations() throws FileNotFoundException, XMLParseException, ConnectIOException, ExecutionException, InterruptedException {
+    public void execValidations() throws FileNotFoundException, XMLParseException, JsonProcessingException,
+            ConnectIOException, ExecutionException, InterruptedException {
         // Record the start date-time of the validation process
         Instant start = Instant.now();
         String startDT = EventListenerService.getCurrentDateTime();
@@ -104,8 +112,9 @@ public class ValidationService {
      * @return a list of HttpSendOutcomeWrapper objects containing the responses or exceptions
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
+     * @throws JsonProcessingException when a validation task contains invalid JSON content
      */
-    List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException {
+    List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException, JsonProcessingException {
         // Build HTTP requests from the validation tasks
         List<HttpRequest> reqs = new ArrayList<>();
         for (ValidationTask task : tasks) {
@@ -113,6 +122,9 @@ public class ValidationService {
             req.uri(URI.create(task.reqURL()));
             task.reqHeaders().forEach(h -> req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));
             req.timeout(TIMEOUT_SECONDS);
+            if (POST.equals(task.reqMethod())) {
+                req.POST(ofString(this.mapper.writeValueAsString(task.reqBody())));
+            }
             reqs.add(req.build());
         }
 
