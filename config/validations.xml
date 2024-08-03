@@ -4,7 +4,7 @@
         <url method="1">http://example.com/api/test</url>
         <header>Content-Type|application/json</header>
         <header>Accept|*/*</header>
-        <reqbody>"data":[]</reqbody>
+        <reqbody>{ "data":[] }</reqbody>
         <response statuscode="200" />
     </validation>
     <validation>
