@@ -5,12 +5,56 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXParseException;
 
+import javax.management.modelmbean.XMLParseException;
+
 /**
- * Custom error handler for XML schema validation errors.
+ * Custom error handler for XML schema validation errors. Also contains utility methods related to error handling.
  */
-<span class="fc" id="L11">public class XMLErrorHandler implements ErrorHandler {</span>
-<span class="fc" id="L12">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
+<span class="fc" id="L13">public class XMLErrorHandler implements ErrorHandler {</span>
+<span class="fc" id="L14">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
     private static final String logmsg = &quot;Warning during Schema Validation of the datafile&quot;;
+
+    /**
+     * Functional interface representing a function that accepts one argument and produces a result,
+     * potentially throwing an exception during the process.
+     *
+     * &lt;p&gt;This interface is similar to {@link java.util.function.Function}, but it allows for checked
+     * exceptions to be thrown during the function application.
+     *
+     * @param &lt;T&gt; the type of the input to the function
+     * @param &lt;R&gt; the type of the result of the function
+     */
+    @FunctionalInterface
+    interface ThrowingFunction&lt;T, R&gt; {
+        R apply(T arg) throws Exception;
+    }
+
+    /**
+     * A utility method to apply a function that may throw an exception, with additional exception handling.
+     *
+     * &lt;p&gt;This method attempts to apply the provided function to the given argument. If an exception occurs,
+     * it logs the error message along with the exception and then throws an {@code XMLParseException} with
+     * the same data.
+     *
+     * @param &lt;T&gt;    the type of the input to the function
+     * @param &lt;R&gt;    the type of the result of the function
+     * @param f      the function to be applied, which may throw an exception
+     * @param arg    the argument to be passed to the function
+     * @param logger the logger to be used
+     * @param msg    the error message to be logged and included in the thrown {@code XMLParseException}
+     * @return the result of the function application
+     * @throws XMLParseException if the function throws any exception during its application
+     *
+     *  @see ThrowingFunction
+     */
+    static &lt;T, R&gt; R parseInputOrThrow(ThrowingFunction&lt;T, R&gt; f, T arg, Logger logger, String msg) throws XMLParseException {
+        try {
+<span class="fc" id="L52">            return f.apply(arg);</span>
+<span class="fc" id="L53">        } catch (Exception e) {</span>
+<span class="fc" id="L54">            logger.error(msg, e);</span>
+<span class="fc" id="L55">            throw new XMLParseException(e, msg + &quot;\n&quot;);</span>
+        }
+    }
 
     /**
      * Handles warnings encountered during XML schema validation.
@@ -20,8 +64,8 @@ import org.xml.sax.SAXParseException;
      */
     @Override
     public void warning(SAXParseException e) {
-<span class="fc" id="L23">        logger.warn(logmsg, e);</span>
-<span class="fc" id="L24">    }</span>
+<span class="fc" id="L67">        logger.warn(logmsg, e);</span>
+<span class="fc" id="L68">    }</span>
 
     /**
      * Handles errors encountered during XML schema validation.
@@ -32,7 +76,7 @@ import org.xml.sax.SAXParseException;
      */
     @Override
     public void error(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L35">        throw e;</span>
+<span class="fc" id="L79">        throw e;</span>
     }
 
     /**
@@ -44,7 +88,7 @@ import org.xml.sax.SAXParseException;
      */
     @Override
     public void fatalError(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L47">        throw e;</span>
+<span class="fc" id="L91">        throw e;</span>
     }
 
     /**
@@ -52,6 +96,6 @@ import org.xml.sax.SAXParseException;
      *
      * @param logger The logger to be used.
      */
-<span class="fc" id="L55">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
+<span class="fc" id="L99">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

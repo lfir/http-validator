@@ -1,8 +1,8 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 http-validator,cf.maybelambda.httpvalidator.springboot.model,ValidationTask,0,144,0,22,0,19,0,15,0,4
-http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLErrorHandler,0,19,0,0,0,7,0,6,0,6
-http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLValidationTaskDao,0,311,0,18,0,76,0,23,0,14
 http-validator,cf.maybelambda.httpvalidator.springboot.filter,JwtRequestFilter,0,31,0,2,0,10,0,4,0,3
+http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLValidationTaskDao,0,296,0,18,0,67,0,23,0,14
+http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLErrorHandler,0,35,0,0,0,11,0,7,0,7
 http-validator,cf.maybelambda.httpvalidator.springboot.service,ValidationService,0,379,0,16,0,76,0,27,0,19
 http-validator,cf.maybelambda.httpvalidator.springboot.service,JwtAuthenticationService,0,98,0,4,0,25,0,11,0,9
 http-validator,cf.maybelambda.httpvalidator.springboot.service,EmailNotificationService,0,220,0,14,0,46,0,20,0,13

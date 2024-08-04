@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XMLValidationTaskDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.persistence</a> &gt; <span class="el_source">XMLValidationTaskDao.java</span></div><h1>XMLValidationTaskDao.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -35,6 +34,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLErrorHandler.parseInputOrThrow;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -104,13 +104,7 @@ public class XMLValidationTaskDao {
      * @throws XMLParseException if parsing fails.
      */
     Document parseXMLInput(InputStream inputStream) throws XMLParseException {
-        try {
-<span class="fc" id="L108">            return this.xmlParser.parse(inputStream);</span>
-<span class="fc" id="L109">        } catch (Exception e) {</span>
-<span class="fc" id="L110">            String errmsg = &quot;Failed to parse target XML content&quot;;</span>
-<span class="fc" id="L111">            logger.error(errmsg, e);</span>
-<span class="fc" id="L112">            throw new XMLParseException(e, errmsg + &quot;\n&quot;);</span>
-        }
+<span class="fc" id="L107">        return parseInputOrThrow(this.xmlParser::parse, inputStream, logger, &quot;Failed to parse target XML content&quot;);</span>
     }
 
     /**
@@ -123,16 +117,16 @@ public class XMLValidationTaskDao {
      */
     public synchronized void updateDataFile(MultipartFile file) throws IOException, NullPointerException, XMLParseException {
         try {
-<span class="fc" id="L126">            this.parseXMLInput(file.getInputStream());</span>
-<span class="fc" id="L127">            Files.write(this.getDataFilePath(), file.getBytes());</span>
-<span class="fc" id="L128">        } catch (NullPointerException | XMLParseException e) {</span>
-<span class="fc" id="L129">            logger.warn(&quot;Invalid EXTERNAL XML received from API&quot;);</span>
-<span class="fc" id="L130">            throw e;</span>
-<span class="fc" id="L131">        } catch (IOException e) {</span>
-<span class="fc" id="L132">            logger.error(&quot;Failed writing new datafile to disk&quot;, e);</span>
-<span class="fc" id="L133">            throw e;</span>
-<span class="fc" id="L134">        }</span>
-<span class="fc" id="L135">    }</span>
+<span class="fc" id="L120">            this.parseXMLInput(file.getInputStream());</span>
+<span class="fc" id="L121">            Files.write(this.getDataFilePath(), file.getBytes());</span>
+<span class="fc" id="L122">        } catch (NullPointerException | XMLParseException e) {</span>
+<span class="fc" id="L123">            logger.warn(&quot;Invalid EXTERNAL XML received from API&quot;);</span>
+<span class="fc" id="L124">            throw e;</span>
+<span class="fc" id="L125">        } catch (IOException e) {</span>
+<span class="fc" id="L126">            logger.error(&quot;Failed writing new datafile to disk&quot;, e);</span>
+<span class="fc" id="L127">            throw e;</span>
+<span class="fc" id="L128">        }</span>
+<span class="fc" id="L129">    }</span>
 
     /**
      * Retrieves the XML Document from the data file.
@@ -142,7 +136,7 @@ public class XMLValidationTaskDao {
      * @throws FileNotFoundException if the data file is not found.
      */
     synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
-<span class="fc" id="L145">        return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));</span>
+<span class="fc" id="L139">        return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));</span>
     }
 
     /**
@@ -151,44 +145,38 @@ public class XMLValidationTaskDao {
      * @return The new validation task.
      * @throws XMLParseException if JSON content in the reqbody element cannot be parsed.
      */
-    private ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
-<span class="fc" id="L155">        MethodType method = null;</span>
-<span class="fc" id="L156">        String url = null;</span>
-<span class="fc" id="L157">        List&lt;String&gt; headers = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L158">        JsonNode reqBody = this.mapper.nullNode();</span>
-<span class="fc" id="L159">        Integer resStatusCode = null;</span>
-<span class="fc" id="L160">        String resBody = null;</span>
+    ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
+<span class="fc" id="L149">        MethodType method = null;</span>
+<span class="fc" id="L150">        String url = null;</span>
+<span class="fc" id="L151">        List&lt;String&gt; headers = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L152">        JsonNode reqBody = this.mapper.nullNode();</span>
+<span class="fc" id="L153">        Integer resStatusCode = null;</span>
+<span class="fc" id="L154">        String resBody = null;</span>
 
-<span class="fc bfc" id="L162" title="All 2 branches covered.">        for (int j = 0; j &lt; validation.getLength(); j++) {</span>
-<span class="fc" id="L163">            Node childNode = validation.item(j);</span>
-<span class="fc" id="L164">            NamedNodeMap attrs = childNode.getAttributes();</span>
-<span class="fc" id="L165">            String name = childNode.getNodeName();</span>
-<span class="fc" id="L166">            String content = childNode.getTextContent().trim();</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (int j = 0; j &lt; validation.getLength(); j++) {</span>
+<span class="fc" id="L157">            Node childNode = validation.item(j);</span>
+<span class="fc" id="L158">            NamedNodeMap attrs = childNode.getAttributes();</span>
+<span class="fc" id="L159">            String name = childNode.getNodeName();</span>
+<span class="fc" id="L160">            String content = childNode.getTextContent().trim();</span>
 
-<span class="fc bfc" id="L168" title="All 2 branches covered.">            if (URL_TAG.equals(name)) {</span>
-<span class="fc" id="L169">                int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());</span>
-<span class="fc" id="L170">                method = MethodType.values()[val];</span>
-<span class="fc" id="L171">                url = content;</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            if (URL_TAG.equals(name)) {</span>
+<span class="fc" id="L163">                int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());</span>
+<span class="fc" id="L164">                method = MethodType.values()[val];</span>
+<span class="fc" id="L165">                url = content;</span>
             }
-<span class="fc bfc" id="L173" title="All 2 branches covered.">            if (HEADER_TAG.equals(name)) {</span>
-<span class="fc" id="L174">                headers.add(content);</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">            if (HEADER_TAG.equals(name)) {</span>
+<span class="fc" id="L168">                headers.add(content);</span>
             }
-<span class="fc bfc" id="L176" title="All 2 branches covered.">            if (REQ_BODY_TAG.equals(name)) {</span>
-                try {
-<span class="fc" id="L178">                    reqBody = this.mapper.readTree(content);</span>
-<span class="fc" id="L179">                } catch (JsonProcessingException e) {</span>
-<span class="fc" id="L180">                    String errmsg = &quot;Invalid JSON content encountered in the data file&quot;;</span>
-<span class="fc" id="L181">                    logger.error(errmsg, e);</span>
-<span class="fc" id="L182">                    throw new XMLParseException(e, errmsg + &quot;\n&quot;);</span>
-<span class="fc" id="L183">                }</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">            if (REQ_BODY_TAG.equals(name)) {</span>
+<span class="fc" id="L171">                reqBody = parseInputOrThrow(this.mapper::readTree, content, logger, &quot;Invalid JSON encountered in data file&quot;);</span>
             }
-<span class="fc bfc" id="L185" title="All 2 branches covered.">            if (RES_TAG.equals(name)) {</span>
-<span class="fc" id="L186">                resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());</span>
-<span class="fc" id="L187">                resBody = content;</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">            if (RES_TAG.equals(name)) {</span>
+<span class="fc" id="L174">                resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());</span>
+<span class="fc" id="L175">                resBody = content;</span>
             }
         }
 
-<span class="fc" id="L191">        return new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody);</span>
+<span class="fc" id="L179">        return new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody);</span>
     }
 
     /**
@@ -200,18 +188,18 @@ public class XMLValidationTaskDao {
      * @throws FileNotFoundException if the data file is not found.
      */
     public List&lt;ValidationTask&gt; getAll() throws XMLParseException, FileNotFoundException {
-<span class="fc" id="L203">        long lastModifiedTime = (new File(this.getDataFilePath().toUri())).lastModified();</span>
-<span class="fc bfc" id="L204" title="All 2 branches covered.">        if (lastModifiedTime &gt; this.lastModifiedTime) {</span>
-<span class="fc" id="L205">            List&lt;ValidationTask&gt; tasks = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L206">            NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">            for (int i = 0; i &lt; validations.getLength(); i++) {</span>
-<span class="fc" id="L208">                tasks.add(this.createVTaskFromNodes(validations.item(i).getChildNodes()));</span>
+<span class="fc" id="L191">        long lastModifiedTime = (new File(this.getDataFilePath().toUri())).lastModified();</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (lastModifiedTime &gt; this.lastModifiedTime) {</span>
+<span class="fc" id="L193">            List&lt;ValidationTask&gt; tasks = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L194">            NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">            for (int i = 0; i &lt; validations.getLength(); i++) {</span>
+<span class="fc" id="L196">                tasks.add(this.createVTaskFromNodes(validations.item(i).getChildNodes()));</span>
             }
-<span class="fc" id="L210">            this.tasks = tasks;</span>
-<span class="fc" id="L211">            this.lastModifiedTime = lastModifiedTime;</span>
+<span class="fc" id="L198">            this.tasks = tasks;</span>
+<span class="fc" id="L199">            this.lastModifiedTime = lastModifiedTime;</span>
         }
 
-<span class="fc" id="L214">        return this.tasks;</span>
+<span class="fc" id="L202">        return this.tasks;</span>
     }
 
     /**
@@ -220,8 +208,8 @@ public class XMLValidationTaskDao {
      * @return True if the data file exists and is readable, false otherwise.
      */
     public boolean isDataFileStatusOk() {
-<span class="fc" id="L223">        Path path = this.getDataFilePath();</span>
-<span class="fc bfc" id="L224" title="All 4 branches covered.">        return Files.isRegularFile(path) &amp;&amp; Files.isReadable(path);</span>
+<span class="fc" id="L211">        Path path = this.getDataFilePath();</span>
+<span class="fc bfc" id="L212" title="All 4 branches covered.">        return Files.isRegularFile(path) &amp;&amp; Files.isReadable(path);</span>
     }
 
     /**
@@ -229,14 +217,14 @@ public class XMLValidationTaskDao {
      *
      * @param xmlParser The XML parser to set.
      */
-<span class="fc" id="L232">    void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }</span>
+<span class="fc" id="L220">    void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }</span>
 
     /**
      * Sets the logger; for testing purposes.
      *
      * @param logger The logger to set.
      */
-<span class="fc" id="L239">    void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }</span>
+<span class="fc" id="L227">    void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }</span>
 
     /**
      * Sets the environment for the XMLValidationTaskDao.
@@ -245,20 +233,20 @@ public class XMLValidationTaskDao {
      *
      * @param env The environment to set.
      */
-<span class="fc" id="L248">    void setEnv(Environment env) { this.env = env; }</span>
+<span class="fc" id="L236">    void setEnv(Environment env) { this.env = env; }</span>
 
     /**
      * Sets the object mapper; for testing purposes.
      *
      * @param mapper The ObjectMapper to set.
      */
-<span class="fc" id="L255">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
+<span class="fc" id="L243">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
 
     /**
      * Sets the lastModifiedTime of the data file; for testing purposes.
      *
      * @param time The new time to set.
      */
-<span class="fc" id="L262">    void setLastModifiedTime(long time) { this.lastModifiedTime = time; }</span>
+<span class="fc" id="L250">    void setLastModifiedTime(long time) { this.lastModifiedTime = time; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
