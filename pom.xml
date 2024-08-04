@@ -10,7 +10,7 @@
     </parent>
     <groupId>cf.maybelambda</groupId>
     <artifactId>http-validator</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <name>http-validator</name>
     <description>Retrieves target HTTP resources and responses, validates them and notifies about their current status.</description>
 

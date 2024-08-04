@@ -25,6 +25,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,6 +56,8 @@ public class XMLValidationTaskDao {
     private static final String SCHEMA_FILENAME = "validations.xsd";
     private DocumentBuilder xmlParser;
     private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);
+    private List<ValidationTask> tasks;
+    private long lastModifiedTime;
 
     @Autowired
     private Environment env;
@@ -143,58 +146,72 @@ public class XMLValidationTaskDao {
     }
 
     /**
-     * Retrieves all validation tasks from the XML data file.
+     * Builds a Validation Task from the data in the received elements, the child nodes of a validation element.
+     *
+     * @return The new validation task.
+     * @throws XMLParseException if JSON content in the reqbody element cannot be parsed.
+     */
+    private ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
+        MethodType method = null;
+        String url = null;
+        List<String> headers = new ArrayList<>();
+        JsonNode reqBody = this.mapper.nullNode();
+        Integer resStatusCode = null;
+        String resBody = null;
+
+        for (int j = 0; j < validation.getLength(); j++) {
+            Node childNode = validation.item(j);
+            NamedNodeMap attrs = childNode.getAttributes();
+            String name = childNode.getNodeName();
+            String content = childNode.getTextContent().trim();
+
+            if (URL_TAG.equals(name)) {
+                int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());
+                method = MethodType.values()[val];
+                url = content;
+            }
+            if (HEADER_TAG.equals(name)) {
+                headers.add(content);
+            }
+            if (REQ_BODY_TAG.equals(name)) {
+                try {
+                    reqBody = this.mapper.readTree(content);
+                } catch (JsonProcessingException e) {
+                    String errmsg = "Invalid JSON content encountered in the data file";
+                    logger.error(errmsg, e);
+                    throw new XMLParseException(e, errmsg + "\n");
+                }
+            }
+            if (RES_TAG.equals(name)) {
+                resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());
+                resBody = content;
+            }
+        }
+
+        return new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody);
+    }
+
+    /**
+     * Retrieves all validation tasks; from the XML data file if it was modified since the last time it was read,
+     * or from memory otherwise.
      *
      * @return A list of validation tasks.
      * @throws XMLParseException if parsing fails.
      * @throws FileNotFoundException if the data file is not found.
      */
     public List<ValidationTask> getAll() throws XMLParseException, FileNotFoundException {
-        List<ValidationTask> tasks = new ArrayList<>();
-        NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
-        for (int i = 0; i < validations.getLength(); i++) {
-            NodeList validation = validations.item(i).getChildNodes();
-            MethodType method = null;
-            String url = null;
-            List<String> headers = new ArrayList<>();
-            JsonNode reqBody = this.mapper.nullNode();
-            Integer resStatusCode = null;
-            String resBody = null;
-
-            for (int j = 0; j < validation.getLength(); j++) {
-                Node childNode = validation.item(j);
-                NamedNodeMap attrs = childNode.getAttributes();
-                String name = childNode.getNodeName();
-                String content = childNode.getTextContent().trim();
-
-                if (URL_TAG.equals(name)) {
-                    int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());
-                    method = MethodType.values()[val];
-                    url = content;
-                }
-                if (HEADER_TAG.equals(name)) {
-                    headers.add(content);
-                }
-                if (REQ_BODY_TAG.equals(name)) {
-                    try {
-                        reqBody = this.mapper.readTree(content);
-                    } catch (JsonProcessingException e) {
-                        String errmsg = "Invalid JSON content encountered in the data file";
-                        logger.error(errmsg, e);
-                        throw new XMLParseException(e, errmsg + "\n");
-                    }
-                }
-                if (RES_TAG.equals(name)) {
-                    resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());
-                    resBody = content;
-                }
+        long lastModifiedTime = (new File(this.getDataFilePath().toUri())).lastModified();
+        if (lastModifiedTime > this.lastModifiedTime) {
+            List<ValidationTask> tasks = new ArrayList<>();
+            NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);
+            for (int i = 0; i < validations.getLength(); i++) {
+                tasks.add(this.createVTaskFromNodes(validations.item(i).getChildNodes()));
             }
-
-            tasks.add(
-                new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody)
-            );
+            this.tasks = tasks;
+            this.lastModifiedTime = lastModifiedTime;
         }
-        return tasks;
+
+        return this.tasks;
     }
 
     /**
@@ -236,4 +253,11 @@ public class XMLValidationTaskDao {
      * @param mapper The ObjectMapper to set.
      */
     void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }
+
+    /**
+     * Sets the lastModifiedTime of the data file; for testing purposes.
+     *
+     * @param time The new time to set.
+     */
+    void setLastModifiedTime(long time) { this.lastModifiedTime = time; }
 }

@@ -53,17 +53,19 @@ An XML file for defining validation tasks, which is used to specify the details 
 
 === Steps to create the XML file
 
-1. **Start with the Root Element**: Begin your XML file with a root element called `validations`. This will contain all your individual validation tasks.
+1. **Start with the Root Element**: Begin your XML file with a root element called `<validations>`. This will contain all your individual validation tasks.
 
-2. **Add Validation Elements**: Inside the `validations` element, you will add multiple `validation` elements. Each `validation` element represents a single task.
+2. **Add Validation Elements**: Inside the `<validations>` element, you will add multiple `<validation>` elements. Each `<validation>` element represents a single task.
 
-3. **Specify Attributes for Each Task**: For each `validation` element, you need to specify several attributes:
-   - `reqmethod`: The HTTP request method (use `0` for `GET` requests).
-   - `requrl`: The URL to which the request will be sent (up to 2000 characters).
-   - `reqheaders`: Any headers that should be included in the request. These should be formatted as `HeaderName|HeaderValue`,
-   separated by carets (`^`) if there are multiple headers (up to 4000 characters). Can be left empty for no headers.
-   - `ressc`: The expected HTTP status code in the response.
-   - `resbody`: The expected body of the response (up to 1000 characters).
+3. **Define each Task**: For each `<validation>` element, you need to specify several sub-elements and attributes:
+  - `<url>`: The URL to which the request will be sent to (up to 2000 characters). **Required.**
+    * `method`: Attribute with the indicator of the request method (use `0` for `GET` requests, `1` for `POST`). **Required.**
+  - `<header>`: Any headers that should be included in the request. These should be formatted as `HeaderName|HeaderValue`,
+  separated by pipe (`|`, up to 3000 characters per element). **Optional**.
+  - `<reqbody>`: JSON content to be sent in the body of a POST request (up to 1000 characters). **Optional**.
+  - `<response>`: The content expected to be present in the body of the response (up to 1000 characters). **Required.**
+    * `statuscode`: Attribute with the expected HTTP status code of the response. **Required.**
+
 
 === Example XML Tasks
 
@@ -73,76 +75,67 @@ Below are some examples of validation tasks in XML format:
 <?xml version="1.0" encoding="UTF-8"?>
 <validations>
     <!-- Example Task 1 -->
-    <validation
-        reqmethod="0"
-        requrl="http://example.com/api/status"
-        reqheaders="Authorization|Bearer token4534354X.9+yjo^Accept|application/json"
-        ressc="200"
-        resbody="A string in a plaintext response" />
+    <validation>
+        <url method="0">http://example.com/api/status</url>
+        <header>Authorization|Bearer token4534354X.9+yjo</header>
+        <header>Accept|application/json</header>
+        <response statuscode="200">A string in a plaintext response</response>
+    </validation>
 
     <!-- Example Task 2 -->
-    <validation
-        reqmethod="0"
-        requrl="http://example.com/api/data"
-        reqheaders="Accept|application/json"
-        ressc="200"
-        resbody="&quot;data&quot;:&quot;some JSON data&quot;" />
+    <validation>
+        <url method="0">http://example.com/api/data</url>
+        <response statuscode="200">"data":"some JSON data"</response>
+    </validation>
 
     <!-- Example Task 3 -->
-    <validation
-        reqmethod="0"
-        requrl="http://example.com/api/health"
-        reqheaders=""
-        ressc="200"
-        resbody='"health":87876854354' />
+    <validation>
+        <url method="1">http://example.com/api/health</url>
+        <header>Content-Type|application/json</header>
+        <reqbody>{ "id": "AX1000T" }</reqbody>
+        <response statuscode="200">"health":87876854354</response>
+    </validation>
 
     <!-- Example Task 4 -->
-    <validation
-        reqmethod="0"
-        requrl="http://example.com/api/info"
-        reqheaders="Custom-Header|Header Value"
-        ressc="404"
-        resbody="" />
+    <validation>
+        <url method="0">http://example.com/oldpath</url>
+        <response statuscode="404" />
+    </validation>
 </validations>
 ```
 
 === Explanation of Examples
 
 * **Example Task 1**:
-  - **Request Method**: `GET` (indicated by `reqmethod="0"`)
+  - **Request Method**: `GET` (indicated by `method="0"`)
   - **Request URL**: `http://example.com/api/status`
-  - **Request Headers**: Two headers: `Authorization` with a bearer token and `Accept` with value `application/json`, separated by `^` (caret character)
+  - **Request Headers**: Two headers, `Authorization` with a bearer token and `Accept` with value `application/json`
+  Keys and values are separated by `|` (pipe character)
   - **Expected Status Code**: `200`
   - **Expected Response Body**: The string expected to be present in a plaintext response
 
 * **Example Task 2**:
   - **Request Method**: `GET`
   - **Request URL**: `http://example.com/api/data`
-  - **Request Headers**: One header: `Accept` with value `application/json`
+  - **Request Headers**: No headers (no `<header>` element present below the `<validation>` element)
   - **Expected Status Code**: `200`
   - **Expected Response Body**: `"data":"some JSON data"`
-  **Note:**
-
-```xml
-&quot; <!-- Is the escape character code used for quotation marks -->
-```
 
 * **Example Task 3**:
-  - **Request Method**: `GET`
+  - **Request Method**: `POST` (indicated by `method="1"`)
   - **Request URL**: `http://example.com/api/health`
-  - **Request Headers**: No headers (indicated by empty value `""`)
+  - **Request Headers**: One header, `Content-Type` with value `application/json`
+  - **Request Body**: JSON data to be sent in the body of the request, inside the `<reqbody>` element
   - **Expected Status Code**: `200`
   - **Expected Response Body**: `"health":87876854354`
-
-**Note:** `'` is used to open and close the value of the attribute, allowing `"` to be used within it.
 
 * **Example Task 4**:
   - **Request Method**: `GET`
   - **Request URL**: `http://example.com/oldpath`
-  - **Request Headers**: One header: `Custom-Header` with value `Header Value`, separated by `|` (pipe character).
-  Header values can contain unescaped spaces.
+  - **Request Headers**: No headers
+  - **Request Body**: None (no `<reqbody>` element present within the `<validation>` element)
   - **Expected Status Code**: `404`
-  - **Expected Response Body**: Body contents are ignored (indicated by empty value `""`)
+  - **Expected Response Body**: Body contents are ignored (indicated by empty `<response>` element)
 
 Besides these common cases most text editors and many online tools can read an input URL or string and highlight any conflicting
 characters in XML and provide alternatives to escape them.
@@ -321,7 +314,7 @@ Restarting the application manually after a change to this file is required so t
 
 == Limitations and other relevant information
 
-- At this stage of the project Validation Tasks can only send `GET` requests and validate responses with empty body or
+- At this stage of the project Validation Tasks can only validate responses with empty body or
 discrete, text-only data like plaintext, CSV, HTML, JSON, etc.
 - When the run schedule is updated from the API WebApplicationContext is restarted automatically to begin
 using it (PID remains the same, beans & variables like `start_time` are re-initialized).

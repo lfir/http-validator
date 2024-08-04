@@ -17,7 +17,6 @@ For more details check the following site:
 
 ### Next steps
 
-- Sending POST requests
 - Making Validation Tasks more flexible
   - Ignore whitespace differences outside of values in content types like JSON
   - Check response headers & other (non-text based) content types

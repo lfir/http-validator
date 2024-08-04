@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 public class ValidationTaskTests {
     private static final String header = "Accept" + HEADER_KEY_VALUE_DELIMITER + "*/*";
     private final JsonNode reqBody = mock(JsonNode.class);
+    private final JsonNode reqBodyB = mock(JsonNode.class);
 
     @Test
     void isValidReturnsTrueWhenExpectedDataMatchesReceivedOneAndFalseOtherwise() {
@@ -80,6 +81,18 @@ public class ValidationTaskTests {
         );
         ValidationTask task2 = new ValidationTask(
             POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+
+        assertThat(task1.equals(task2)).isFalse();
+    }
+
+    @Test
+    void equalsReturnsFalseWhenDifferentRequestBody() {
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,404, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBodyB,404, "X"
         );
 
         assertThat(task1.equals(task2)).isFalse();

@@ -1,6 +1,7 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 
 import static cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao.DATAFILE_PROPERTY;
@@ -128,6 +130,7 @@ public class XMLValidationTaskDaoTests {
         assertEquals(GET, ans.get(0).reqMethod());
         assertEquals(this.url.getTextContent(), ans.get(0).reqURL());
         assertEquals(this.header.getTextContent(), ans.get(0).reqHeaders().get(0));
+        assertEquals(this.mapper.readTree(this.reqbody.getTextContent()), ans.get(0).reqBody());
         assertEquals(Integer.parseInt(this.resBodyAttrs.getNamedItem(RES_SC_ATTR).getTextContent()), ans.get(0).validStatusCode());
         assertEquals(this.response.getTextContent(), ans.get(0).validBody());
     }
@@ -154,6 +157,29 @@ public class XMLValidationTaskDaoTests {
 
         assertThrows(XMLParseException.class, () -> this.taskDao.getAll());
         verify(logger).error(anyString(), any(Throwable.class));
+    }
+
+    @Test
+    void whenJacksonThrowsJSONExceptionInGetAllThenErrorIsLogged() throws Exception {
+        // Number of <validation> elements
+        given(this.nodes.getLength()).willReturn(1);
+        // 2 child nodes of <validation>: <url> and <reqbody>
+        given(this.childNodes.getLength()).willReturn(2);
+        // <reqbody>
+        given(this.childNodes.item(1)).willReturn(this.reqbody);
+        given(this.reqbody.getNodeName()).willReturn(REQ_BODY_TAG);
+        given(this.reqbody.getTextContent()).willReturn("");
+        given(this.mapper.readTree(anyString())).willThrow(JsonProcessingException.class);
+
+        assertThrows(XMLParseException.class, () -> this.taskDao.getAll());
+        verify(logger).error(anyString(), any(Throwable.class));
+    }
+
+    @Test
+    void getAllReturnsTasksFromMemoryWhenDataFileNotModifiedSinceLastRun() throws Exception {
+        this.taskDao.setLastModifiedTime(Instant.now().plusSeconds(86400).toEpochMilli());
+
+        assertThat(this.taskDao.getAll()).isNull();
     }
 
     @Test

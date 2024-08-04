@@ -265,4 +265,11 @@ public class ValidationService {
      * @param env Environment
      */
     void setEnv(Environment env) { this.env = env; }
+
+    /**
+     * Sets the object mapper; for testing purposes.
+     *
+     * @param mapper The ObjectMapper to set.
+     */
+    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }
 }

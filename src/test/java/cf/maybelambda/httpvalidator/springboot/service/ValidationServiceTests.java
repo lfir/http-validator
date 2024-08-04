@@ -3,6 +3,7 @@ package cf.maybelambda.httpvalidator.springboot.service;
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,6 +29,7 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoControll
 import static cf.maybelambda.httpvalidator.springboot.service.ValidationService.HEADER_KEY_VALUE_DELIMITER;
 import static java.util.Collections.emptyList;
 import static javax.swing.text.html.FormSubmitEvent.MethodType.GET;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class ValidationServiceTests {
+    private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final HttpResponse<String> res = mock(HttpResponse.class);
     private final EmailNotificationService ns = mock(EmailNotificationService.class);
     private final HttpClient cl = mock(HttpClient.class);
@@ -58,6 +61,7 @@ public class ValidationServiceTests {
         this.vs.setLogger(this.logger);
         this.tasks.clear();
         this.vs.setEnv(env);
+        this.vs.setObjectMapper(this.mapper);
 
         given(this.req.uri()).willReturn(URI.create("http://localhost"));
         given(this.res.request()).willReturn(this.req);
@@ -80,6 +84,23 @@ public class ValidationServiceTests {
         assertEquals(1, this.dao.getAll().size());
         verify(this.cl).sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
         verify(this.ns).sendVTaskErrorsNotification(anyList());
+    }
+
+    @Test
+    void execValidationsSendsPOSTRequestWithBodyWhenTaskMethodIsPOST() throws Exception {
+        given(this.cl.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .willReturn(CompletableFuture.completedFuture(this.res));
+        given(this.mapper.writeValueAsString(any(JsonNode.class))).willReturn("");
+
+        this.tasks.add(
+            new ValidationTask(POST, "http://localhost", emptyList(), this.reqBody,200, "")
+        );
+        given(this.dao.getAll()).willReturn(this.tasks);
+
+        this.vs.execValidations();
+
+        verify(this.mapper).writeValueAsString(this.reqBody);
+        verify(this.cl).sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
     }
 
     @Test

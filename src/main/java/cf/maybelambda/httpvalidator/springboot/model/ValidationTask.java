@@ -64,12 +64,12 @@ public record ValidationTask(MethodType reqMethod, String reqURL, List<String> r
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ValidationTask that)) return false;
-        return this.reqMethod == that.reqMethod &&
-            this.validStatusCode == that.validStatusCode &&
+        return Objects.equals(this.reqMethod, that.reqMethod) &&
             Objects.equals(this.reqURL, that.reqURL) &&
-            Objects.equals(this.validBody, that.validBody) &&
             Objects.equals(this.reqHeaders, that.reqHeaders) &&
-            Objects.equals(this.reqBody, that.reqBody);
+            Objects.equals(this.reqBody, that.reqBody) &&
+            this.validStatusCode == that.validStatusCode &&
+            Objects.equals(this.validBody, that.validBody);
     }
 
     @Override
