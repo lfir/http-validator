@@ -873,7 +873,7 @@ instead of the default before running the commands above, i.e.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -947,7 +947,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 92
 
-{"start_time":"Sun, 4 Aug 2024 18:52:58 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Sun, 4 Aug 2024 18:54:33 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
@@ -956,7 +956,7 @@ Content-Length: 92
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -973,7 +973,7 @@ time elapsed, number of total tasks, tasks ok and tasks failed.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1095,7 +1095,7 @@ Vary: Access-Control-Request-Headers
 Content-Type: application/json
 Content-Length: 116
 
-{"start_time":"Sun, 4 Aug 2024 18:52:58 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
+{"start_time":"Sun, 4 Aug 2024 18:54:34 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
 </div>
 </div>
 </div>
@@ -1104,7 +1104,7 @@ Content-Length: 116
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -1127,7 +1127,7 @@ to the predefined <a href="https://github.com/lfir/http-validator/blob/main/src/
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/datafile HTTP/1.1
 Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw
 Host: localhost:8080
 
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
@@ -1217,7 +1217,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/datafile' -i -X PUT \
     -H 'Content-Type: multipart/form-data' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw' \
     -F 'file=@validations.xml;type=application/xml'</code></pre>
 </div>
 </div>
@@ -1235,7 +1235,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/runschedule HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw
 Content-Length: 29
 Host: localhost:8080
 
@@ -1320,7 +1320,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/runschedule' -i -X PUT \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc1NzgsImV4cCI6MTcyMjgwMTE3OH0.8DJNUDom7szvRQyQgGt7cXJAGzkkrONFNJVVWSZILKK2MIrg8y1x8LbznRaQg142I8pEfYi4FKKtyjl6OGXSQA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3OTc2NzQsImV4cCI6MTcyMjgwMTI3NH0.tjx3kilO2gFen-JGux5o7qIFSWmyLTI4Qww8raRjTLdgeaZtxDpw30cT9iFAlu595R-jIdGwXDwgv-MW38HOEw' \
     -d '{"cron_expression":"* 2 * ?"}'</code></pre>
 </div>
 </div>
@@ -1371,7 +1371,7 @@ point no more details are provided regarding the issue (i.e. if the connection w
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-08-04 18:52:34 UTC
+Last updated 2024-08-04 18:54:15 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
