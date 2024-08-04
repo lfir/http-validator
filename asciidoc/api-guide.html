@@ -610,30 +610,41 @@ for monitoring and maintaining application health.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Start with the Root Element</strong>: Begin your XML file with a root element called <code>validations</code>. This will contain all your individual validation tasks.</p>
+<p><strong>Start with the Root Element</strong>: Begin your XML file with a root element called <code>&lt;validations&gt;</code>. This will contain all your individual validation tasks.</p>
 </li>
 <li>
-<p><strong>Add Validation Elements</strong>: Inside the <code>validations</code> element, you will add multiple <code>validation</code> elements. Each <code>validation</code> element represents a single task.</p>
+<p><strong>Add Validation Elements</strong>: Inside the <code>&lt;validations&gt;</code> element, you will add multiple <code>&lt;validation&gt;</code> elements. Each <code>&lt;validation&gt;</code> element represents a single task.</p>
 </li>
 <li>
-<p><strong>Specify Attributes for Each Task</strong>: For each <code>validation</code> element, you need to specify several attributes:</p>
+<p><strong>Define each Task</strong>: For each <code>&lt;validation&gt;</code> element, you need to specify several sub-elements and attributes:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>reqmethod</code>: The HTTP request method (use <code>0</code> for <code>GET</code> requests).</p>
+<p><code>&lt;url&gt;</code>: The URL to which the request will be sent to (up to 2000 characters). <strong>Required.</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>method</code>: Attribute with the indicator of the request method (use <code>0</code> for <code>GET</code> requests, <code>1</code> for <code>POST</code>). <strong>Required.</strong></p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p><code>requrl</code>: The URL to which the request will be sent (up to 2000 characters).</p>
+<p><code>&lt;header&gt;</code>: Any headers that should be included in the request. These should be formatted as <code>HeaderName|HeaderValue</code>,
+separated by pipe (<code>|</code>, up to 3000 characters per element). <strong>Optional</strong>.</p>
 </li>
 <li>
-<p><code>reqheaders</code>: Any headers that should be included in the request. These should be formatted as <code>HeaderName|HeaderValue</code>,
-separated by carets (<code>^</code>) if there are multiple headers (up to 4000 characters). Can be left empty for no headers.</p>
+<p><code>&lt;reqbody&gt;</code>: JSON content to be sent in the body of a POST request (up to 1000 characters). <strong>Optional</strong>.</p>
 </li>
 <li>
-<p><code>ressc</code>: The expected HTTP status code in the response.</p>
-</li>
+<p><code>&lt;response&gt;</code>: The content expected to be present in the body of the response (up to 1000 characters). <strong>Required.</strong></p>
+<div class="ulist">
+<ul>
 <li>
-<p><code>resbody</code>: The expected body of the response (up to 1000 characters).</p>
+<p><code>statuscode</code>: Attribute with the expected HTTP status code of the response. <strong>Required.</strong></p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -651,36 +662,32 @@ separated by carets (<code>^</code>) if there are multiple headers (up to 4000 c
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;validations&gt;
     &lt;!-- Example Task 1 --&gt;
-    &lt;validation
-        reqmethod="0"
-        requrl="http://example.com/api/status"
-        reqheaders="Authorization|Bearer token4534354X.9+yjo^Accept|application/json"
-        ressc="200"
-        resbody="A string in a plaintext response" /&gt;
+    &lt;validation&gt;
+        &lt;url method="0"&gt;http://example.com/api/status&lt;/url&gt;
+        &lt;header&gt;Authorization|Bearer token4534354X.9+yjo&lt;/header&gt;
+        &lt;header&gt;Accept|application/json&lt;/header&gt;
+        &lt;response statuscode="200"&gt;A string in a plaintext response&lt;/response&gt;
+    &lt;/validation&gt;
 
     &lt;!-- Example Task 2 --&gt;
-    &lt;validation
-        reqmethod="0"
-        requrl="http://example.com/api/data"
-        reqheaders="Accept|application/json"
-        ressc="200"
-        resbody="&amp;quot;data&amp;quot;:&amp;quot;some JSON data&amp;quot;" /&gt;
+    &lt;validation&gt;
+        &lt;url method="0"&gt;http://example.com/api/data&lt;/url&gt;
+        &lt;response statuscode="200"&gt;"data":"some JSON data"&lt;/response&gt;
+    &lt;/validation&gt;
 
     &lt;!-- Example Task 3 --&gt;
-    &lt;validation
-        reqmethod="0"
-        requrl="http://example.com/api/health"
-        reqheaders=""
-        ressc="200"
-        resbody='"health":87876854354' /&gt;
+    &lt;validation&gt;
+        &lt;url method="1"&gt;http://example.com/api/health&lt;/url&gt;
+        &lt;header&gt;Content-Type|application/json&lt;/header&gt;
+        &lt;reqbody&gt;{ "id": "AX1000T" }&lt;/reqbody&gt;
+        &lt;response statuscode="200"&gt;"health":87876854354&lt;/response&gt;
+    &lt;/validation&gt;
 
     &lt;!-- Example Task 4 --&gt;
-    &lt;validation
-        reqmethod="0"
-        requrl="http://example.com/api/info"
-        reqheaders="Custom-Header|Header Value"
-        ressc="404"
-        resbody="" /&gt;
+    &lt;validation&gt;
+        &lt;url method="0"&gt;http://example.com/oldpath&lt;/url&gt;
+        &lt;response statuscode="404" /&gt;
+    &lt;/validation&gt;
 &lt;/validations&gt;</code></pre>
 </div>
 </div>
@@ -694,13 +701,14 @@ separated by carets (<code>^</code>) if there are multiple headers (up to 4000 c
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Request Method</strong>: <code>GET</code> (indicated by <code>reqmethod="0"</code>)</p>
+<p><strong>Request Method</strong>: <code>GET</code> (indicated by <code>method="0"</code>)</p>
 </li>
 <li>
 <p><strong>Request URL</strong>: <code><a href="http://example.com/api/status" class="bare">http://example.com/api/status</a></code></p>
 </li>
 <li>
-<p><strong>Request Headers</strong>: Two headers: <code>Authorization</code> with a bearer token and <code>Accept</code> with value <code>application/json</code>, separated by <code>^</code> (caret character)</p>
+<p><strong>Request Headers</strong>: Two headers, <code>Authorization</code> with a bearer token and <code>Accept</code> with value <code>application/json</code>
+Keys and values are separated by <code>|</code> (pipe character)</p>
 </li>
 <li>
 <p><strong>Expected Status Code</strong>: <code>200</code></p>
@@ -722,39 +730,32 @@ separated by carets (<code>^</code>) if there are multiple headers (up to 4000 c
 <p><strong>Request URL</strong>: <code><a href="http://example.com/api/data" class="bare">http://example.com/api/data</a></code></p>
 </li>
 <li>
-<p><strong>Request Headers</strong>: One header: <code>Accept</code> with value <code>application/json</code></p>
+<p><strong>Request Headers</strong>: No headers (no <code>&lt;header&gt;</code> element present below the <code>&lt;validation&gt;</code> element)</p>
 </li>
 <li>
 <p><strong>Expected Status Code</strong>: <code>200</code></p>
 </li>
 <li>
-<p><strong>Expected Response Body</strong>: <code>"data":"some JSON data"</code>
-<strong>Note:</strong></p>
+<p><strong>Expected Response Body</strong>: <code>"data":"some JSON data"</code></p>
 </li>
 </ul>
 </div>
 </li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&amp;quot; &lt;!-- Is the escape character code used for quotation marks --&gt;</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
 <li>
 <p><strong>Example Task 3</strong>:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Request Method</strong>: <code>GET</code></p>
+<p><strong>Request Method</strong>: <code>POST</code> (indicated by <code>method="1"</code>)</p>
 </li>
 <li>
 <p><strong>Request URL</strong>: <code><a href="http://example.com/api/health" class="bare">http://example.com/api/health</a></code></p>
 </li>
 <li>
-<p><strong>Request Headers</strong>: No headers (indicated by empty value <code>""</code>)</p>
+<p><strong>Request Headers</strong>: One header, <code>Content-Type</code> with value <code>application/json</code></p>
+</li>
+<li>
+<p><strong>Request Body</strong>: JSON data to be sent in the body of the request, inside the <code>&lt;reqbody&gt;</code> element</p>
 </li>
 <li>
 <p><strong>Expected Status Code</strong>: <code>200</code></p>
@@ -765,13 +766,6 @@ separated by carets (<code>^</code>) if there are multiple headers (up to 4000 c
 </ul>
 </div>
 </li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>Note:</strong> <code>'</code> is used to open and close the value of the attribute, allowing <code>"</code> to be used within it.</p>
-</div>
-<div class="ulist">
-<ul>
 <li>
 <p><strong>Example Task 4</strong>:</p>
 <div class="ulist">
@@ -783,14 +777,16 @@ separated by carets (<code>^</code>) if there are multiple headers (up to 4000 c
 <p><strong>Request URL</strong>: <code><a href="http://example.com/oldpath" class="bare">http://example.com/oldpath</a></code></p>
 </li>
 <li>
-<p><strong>Request Headers</strong>: One header: <code>Custom-Header</code> with value <code>Header Value</code>, separated by <code>|</code> (pipe character).
-Header values can contain unescaped spaces.</p>
+<p><strong>Request Headers</strong>: No headers</p>
+</li>
+<li>
+<p><strong>Request Body</strong>: None (no <code>&lt;reqbody&gt;</code> element present within the <code>&lt;validation&gt;</code> element)</p>
 </li>
 <li>
 <p><strong>Expected Status Code</strong>: <code>404</code></p>
 </li>
 <li>
-<p><strong>Expected Response Body</strong>: Body contents are ignored (indicated by empty value <code>""</code>)</p>
+<p><strong>Expected Response Body</strong>: Body contents are ignored (indicated by empty <code>&lt;response&gt;</code> element)</p>
 </li>
 </ul>
 </div>
@@ -877,7 +873,7 @@ instead of the default before running the commands above, i.e.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -949,9 +945,9 @@ Vary: Origin
 Vary: Access-Control-Request-Method
 Vary: Access-Control-Request-Headers
 Content-Type: application/json
-Content-Length: 93
+Content-Length: 92
 
-{"start_time":"Wed, 31 Jul 2024 22:42:54 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Sun, 4 Aug 2024 13:10:26 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
@@ -960,7 +956,7 @@ Content-Length: 93
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -977,7 +973,7 @@ time elapsed, number of total tasks, tasks ok and tasks failed.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1097,9 +1093,9 @@ Vary: Origin
 Vary: Access-Control-Request-Method
 Vary: Access-Control-Request-Headers
 Content-Type: application/json
-Content-Length: 117
+Content-Length: 116
 
-{"start_time":"Wed, 31 Jul 2024 22:42:54 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
+{"start_time":"Sun, 4 Aug 2024 13:10:27 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
 </div>
 </div>
 </div>
@@ -1108,7 +1104,7 @@ Content-Length: 117
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -1131,14 +1127,14 @@ to the predefined <a href="https://github.com/lfir/http-validator/blob/main/src/
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/datafile HTTP/1.1
 Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg
 Host: localhost:8080
 
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
 Content-Disposition: form-data; name=file; filename=validations.xml
 Content-Type: application/xml
 
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;validations&gt;&lt;validation reqmethod="0" requrl="http://example.com/api/test" reqheaders="" ressc="200" resbody=""/&gt;&lt;/validations&gt;
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;validations&gt;&lt;validation&gt;&lt;url method="0"&gt;http://example.com/api/test&lt;/url&gt;&lt;response statuscode="200" /&gt;&lt;/validation&gt;&lt;/validations&gt;
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm--</code></pre>
 </div>
 </div>
@@ -1221,7 +1217,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/datafile' -i -X PUT \
     -H 'Content-Type: multipart/form-data' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg' \
     -F 'file=@validations.xml;type=application/xml'</code></pre>
 </div>
 </div>
@@ -1239,7 +1235,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/runschedule HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg
 Content-Length: 29
 Host: localhost:8080
 
@@ -1324,7 +1320,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/runschedule' -i -X PUT \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI0NjU3NzQsImV4cCI6MTcyMjQ2OTM3NH0.e5GbcUan_tJ0EnM3oemwqznYXBoLl7FqY-RHDnKF8u1YrCVacscbwHeAPeEU-NrAeWuGAXAA4gedzkqHFGoxGw' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3MjI3NzcwMjcsImV4cCI6MTcyMjc4MDYyN30.qTH7BE0i_o0q6RsloSKXIzjWOCSgsDvgLNOnSAInhB3SA7qoRR-U5jqiYUcRIQgBJR68w8o2iKb3UbH0ngclwg' \
     -d '{"cron_expression":"* 2 * ?"}'</code></pre>
 </div>
 </div>
@@ -1357,7 +1353,7 @@ Restarting the application manually after a change to this file is required so t
 <div class="ulist">
 <ul>
 <li>
-<p>At this stage of the project Validation Tasks can only send <code>GET</code> requests and validate responses with empty body or
+<p>At this stage of the project Validation Tasks can only validate responses with empty body or
 discrete, text-only data like plaintext, CSV, HTML, JSON, etc.</p>
 </li>
 <li>
@@ -1375,7 +1371,7 @@ point no more details are provided regarding the issue (i.e. if the connection w
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-31 22:42:33 UTC
+Last updated 2024-08-04 13:10:06 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

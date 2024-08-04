@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationTask.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.model</a> &gt; <span class="el_source">ValidationTask.java</span></div><h1>ValidationTask.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import javax.swing.text.html.FormSubmitEvent.MethodType;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,25 +12,26 @@ import static java.util.Objects.requireNonNull;
 /**
  * Represents a validation task with HTTP request details and expected response criteria.
  */
-public record ValidationTask(int reqMethod, String reqURL, List&lt;String&gt; reqHeaders, int validStatusCode, String validBody) {
+public record ValidationTask(MethodType reqMethod, String reqURL, List&lt;String&gt; reqHeaders, JsonNode reqBody, int validStatusCode, String validBody) {
 
     /**
-     * Constructor for ValidationTask.
-     * &lt;p&gt;
-     * Ensures that none of the parameters reqURL, reqHeaders, or validBody are null.
+     * Constructor for ValidationTask. Ensures that none of the parameters are null.
      *
-     * @param reqMethod The HTTP request method.
-     * @param reqURL The URL for the HTTP request. Must not be null.
-     * @param reqHeaders The headers for the HTTP request. Must not be null.
+     * @param reqMethod The HTTP request method, GET or POST.
+     * @param reqURL The URL for the HTTP request.
+     * @param reqHeaders The headers for the HTTP request.
+     * @param reqBody The JSON body for a POST request.
      * @param validStatusCode The expected status code for a valid response.
-     * @param validBody The expected substring in the response body for a valid response. Must not be null.
-     * @throws NullPointerException if reqURL, reqHeaders, or validBody are null.
+     * @param validBody The expected substring in the response body for a valid response.
+     * @throws NullPointerException if any argument is null.
      */
-<span class="fc" id="L26">    public ValidationTask {</span>
-<span class="fc" id="L27">        requireNonNull(reqURL);</span>
-<span class="fc" id="L28">        requireNonNull(reqHeaders);</span>
-<span class="fc" id="L29">        requireNonNull(validBody);</span>
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L28">    public ValidationTask {</span>
+<span class="fc" id="L29">        requireNonNull(reqMethod);</span>
+<span class="fc" id="L30">        requireNonNull(reqURL);</span>
+<span class="fc" id="L31">        requireNonNull(reqHeaders);</span>
+<span class="fc" id="L32">        requireNonNull(reqBody);</span>
+<span class="fc" id="L33">        requireNonNull(validBody);</span>
+<span class="fc" id="L34">    }</span>
 
     /**
      * Checks if the response status code and body match the expected criteria.
@@ -40,35 +44,37 @@ public record ValidationTask(int reqMethod, String reqURL, List&lt;String&gt; re
      * @return {@code true} if the status code matches and the body contains the expected substring, {@code false} otherwise.
      */
     public boolean isValid(int statusCode, String body) {
-<span class="fc" id="L43">        boolean res = false;</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (nonNull(body)) {</span>
-<span class="fc bfc" id="L45" title="All 4 branches covered.">            res = this.validStatusCode == statusCode &amp;&amp; body.contains(this.validBody);</span>
+<span class="fc" id="L47">        boolean res = false;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (nonNull(body)) {</span>
+<span class="fc bfc" id="L49" title="All 4 branches covered.">            res = this.validStatusCode == statusCode &amp;&amp; body.contains(this.validBody);</span>
         }
-<span class="fc" id="L47">        return res;</span>
+<span class="fc" id="L51">        return res;</span>
     }
 
     /**
      * Compares this ValidationTask to the specified object for equality.
      * &lt;p&gt;
-     * The comparison is based on the request method, request URL, request headers, valid status code, and valid body.
+     * The comparison is based on the request method, request URL, request headers, request body,
+     * valid status code, and valid response body.
      *
      * @param o The object to compare with this ValidationTask.
      * @return {@code true} if the specified object is equal to this ValidationTask; {@code false} otherwise.
      */
     @Override
     public boolean equals(Object o) {
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (this == o) return true;</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (!(o instanceof ValidationTask that)) return false;</span>
-<span class="fc bfc" id="L62" title="All 4 branches covered.">        return this.reqMethod == that.reqMethod &amp;&amp;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (this == o) return true;</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (!(o instanceof ValidationTask that)) return false;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        return Objects.equals(this.reqMethod, that.reqMethod) &amp;&amp;</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            Objects.equals(this.reqURL, that.reqURL) &amp;&amp;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            Objects.equals(this.reqHeaders, that.reqHeaders) &amp;&amp;</span>
+<span class="fc bfc" id="L70" title="All 4 branches covered.">            Objects.equals(this.reqBody, that.reqBody) &amp;&amp;</span>
             this.validStatusCode == that.validStatusCode &amp;&amp;
-<span class="fc bfc" id="L64" title="All 2 branches covered.">            Objects.equals(this.reqURL, that.reqURL) &amp;&amp;</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">            Objects.equals(this.validBody, that.validBody) &amp;&amp;</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">            Objects.equals(this.reqHeaders, that.reqHeaders);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            Objects.equals(this.validBody, that.validBody);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L71">        return Objects.hash(reqMethod, reqURL, reqHeaders, validStatusCode, validBody);</span>
+<span class="fc" id="L77">        return Objects.hash(reqMethod, reqURL, reqHeaders, reqBody, validStatusCode, validBody);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
