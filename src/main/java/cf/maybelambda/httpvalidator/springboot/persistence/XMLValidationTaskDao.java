@@ -1,7 +1,6 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -35,6 +34,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cf.maybelambda.httpvalidator.springboot.persistence.XMLErrorHandler.parseInputOrThrow;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -104,13 +104,7 @@ public class XMLValidationTaskDao {
      * @throws XMLParseException if parsing fails.
      */
     Document parseXMLInput(InputStream inputStream) throws XMLParseException {
-        try {
-            return this.xmlParser.parse(inputStream);
-        } catch (Exception e) {
-            String errmsg = "Failed to parse target XML content";
-            logger.error(errmsg, e);
-            throw new XMLParseException(e, errmsg + "\n");
-        }
+        return parseInputOrThrow(this.xmlParser::parse, inputStream, logger, "Failed to parse target XML content");
     }
 
     /**
@@ -151,7 +145,7 @@ public class XMLValidationTaskDao {
      * @return The new validation task.
      * @throws XMLParseException if JSON content in the reqbody element cannot be parsed.
      */
-    private ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
+    ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
         MethodType method = null;
         String url = null;
         List<String> headers = new ArrayList<>();
@@ -174,13 +168,7 @@ public class XMLValidationTaskDao {
                 headers.add(content);
             }
             if (REQ_BODY_TAG.equals(name)) {
-                try {
-                    reqBody = this.mapper.readTree(content);
-                } catch (JsonProcessingException e) {
-                    String errmsg = "Invalid JSON content encountered in the data file";
-                    logger.error(errmsg, e);
-                    throw new XMLParseException(e, errmsg + "\n");
-                }
+                reqBody = parseInputOrThrow(this.mapper::readTree, content, logger, "Invalid JSON encountered in data file");
             }
             if (RES_TAG.equals(name)) {
                 resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());
