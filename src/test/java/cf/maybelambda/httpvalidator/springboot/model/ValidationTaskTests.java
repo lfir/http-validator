@@ -1,16 +1,27 @@
 package cf.maybelambda.httpvalidator.springboot.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
+import static cf.maybelambda.httpvalidator.springboot.service.ValidationService.HEADER_KEY_VALUE_DELIMITER;
+import static java.util.Collections.emptyList;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.GET;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class ValidationTaskTests {
+    private static final String header = "Accept" + HEADER_KEY_VALUE_DELIMITER + "*/*";
+    private final JsonNode reqBody = mock(JsonNode.class);
+    private final JsonNode reqBodyB = mock(JsonNode.class);
+
     @Test
     void isValidReturnsTrueWhenExpectedDataMatchesReceivedOneAndFalseOtherwise() {
-        ValidationTask vt = new ValidationTask(0, "http://localhost", Collections.emptyList(), 200, "test body");
+        ValidationTask vt = new ValidationTask(
+            GET, "http://localhost", emptyList(), this.reqBody,200, "test body"
+        );
 
         // Invalid because of different status codes
         assertThat(vt.isValid(400, "test body")).isFalse();
@@ -22,14 +33,18 @@ public class ValidationTaskTests {
 
     @Test
     void equalsReturnsTrueWhenSameObject() {
-        ValidationTask task = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
+        ValidationTask task = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
 
         assertThat(task.equals(task)).isTrue();
     }
 
     @Test
     void equalsReturnsFalseWhenDifferentType() {
-        ValidationTask task = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
+        ValidationTask task = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
         String other = "Not a ValidationTask";
 
         assertThat(task.equals(other)).isFalse();
@@ -37,56 +52,96 @@ public class ValidationTaskTests {
 
     @Test
     void equalsReturnsFalseWhenDifferentReqMethod() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(2, "http://example.com", List.of("Header1"), 200, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            GET, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
 
         assertThat(task1.equals(task2)).isFalse();
     }
 
     @Test
     void equalsReturnsFalseWhenDifferentReqURL() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example2.com", List.of("Header1"), 200, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", emptyList(), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://example.com", emptyList(), this.reqBody, 200, "X"
+        );
 
         assertThat(task1.equals(task2)).isFalse();
     }
 
     @Test
     void equalsReturnsFalseWhenDifferentReqHeaders() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header2"), 200, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", emptyList(), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+
+        assertThat(task1.equals(task2)).isFalse();
+    }
+
+    @Test
+    void equalsReturnsFalseWhenDifferentRequestBody() {
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,404, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBodyB,404, "X"
+        );
 
         assertThat(task1.equals(task2)).isFalse();
     }
 
     @Test
     void equalsReturnsFalseWhenDifferentValidStatusCode() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 404, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,404, "X"
+        );
 
         assertThat(task1.equals(task2)).isFalse();
     }
 
     @Test
     void equalsReturnsFalseWhenDifferentValidBody() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Different Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "O"
+        );
 
         assertThat(task1.equals(task2)).isFalse();
     }
 
     @Test
     void equalsReturnsTrueWhenSameFieldValues() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
 
         assertThat(task1.equals(task2)).isTrue();
     }
 
     @Test
     void sameHashCodeWhenEqualObjects() {
-        ValidationTask task1 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
-        ValidationTask task2 = new ValidationTask(1, "http://example.com", List.of("Header1"), 200, "Body");
+        ValidationTask task1 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
+        ValidationTask task2 = new ValidationTask(
+            POST, "http://ex.com", List.of(header), this.reqBody,200, "X"
+        );
 
         assertThat(task1.hashCode()).isEqualTo(task2.hashCode());
     }

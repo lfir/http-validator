@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <validations>
-    <validation reqmethod="0" requrl="http://localhost" reqheaders="" ressc="200" resbody="" />
+    <validation>
+        <url method="1">http://example.com/api/test</url>
+        <header>Content-Type|application/json</header>
+        <header>Accept|*/*</header>
+        <reqbody>{ "data":[] }</reqbody>
+        <response statuscode="200" />
+    </validation>
+    <validation>
+        <url method="0">http://example.com/api/status</url>
+        <response statuscode="200">"status":"ok"</response>
+    </validation>
 </validations>

@@ -1,5 +1,8 @@
 package cf.maybelambda.httpvalidator.springboot.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import javax.swing.text.html.FormSubmitEvent.MethodType;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,23 +12,24 @@ import static java.util.Objects.requireNonNull;
 /**
  * Represents a validation task with HTTP request details and expected response criteria.
  */
-public record ValidationTask(int reqMethod, String reqURL, List<String> reqHeaders, int validStatusCode, String validBody) {
+public record ValidationTask(MethodType reqMethod, String reqURL, List<String> reqHeaders, JsonNode reqBody, int validStatusCode, String validBody) {
 
     /**
-     * Constructor for ValidationTask.
-     * <p>
-     * Ensures that none of the parameters reqURL, reqHeaders, or validBody are null.
+     * Constructor for ValidationTask. Ensures that none of the parameters are null.
      *
-     * @param reqMethod The HTTP request method.
-     * @param reqURL The URL for the HTTP request. Must not be null.
-     * @param reqHeaders The headers for the HTTP request. Must not be null.
+     * @param reqMethod The HTTP request method, GET or POST.
+     * @param reqURL The URL for the HTTP request.
+     * @param reqHeaders The headers for the HTTP request.
+     * @param reqBody The JSON body for a POST request.
      * @param validStatusCode The expected status code for a valid response.
-     * @param validBody The expected substring in the response body for a valid response. Must not be null.
-     * @throws NullPointerException if reqURL, reqHeaders, or validBody are null.
+     * @param validBody The expected substring in the response body for a valid response.
+     * @throws NullPointerException if any argument is null.
      */
     public ValidationTask {
+        requireNonNull(reqMethod);
         requireNonNull(reqURL);
         requireNonNull(reqHeaders);
+        requireNonNull(reqBody);
         requireNonNull(validBody);
     }
 
@@ -50,7 +54,8 @@ public record ValidationTask(int reqMethod, String reqURL, List<String> reqHeade
     /**
      * Compares this ValidationTask to the specified object for equality.
      * <p>
-     * The comparison is based on the request method, request URL, request headers, valid status code, and valid body.
+     * The comparison is based on the request method, request URL, request headers, request body,
+     * valid status code, and valid response body.
      *
      * @param o The object to compare with this ValidationTask.
      * @return {@code true} if the specified object is equal to this ValidationTask; {@code false} otherwise.
@@ -59,15 +64,16 @@ public record ValidationTask(int reqMethod, String reqURL, List<String> reqHeade
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ValidationTask that)) return false;
-        return this.reqMethod == that.reqMethod &&
-            this.validStatusCode == that.validStatusCode &&
+        return Objects.equals(this.reqMethod, that.reqMethod) &&
             Objects.equals(this.reqURL, that.reqURL) &&
-            Objects.equals(this.validBody, that.validBody) &&
-            Objects.equals(this.reqHeaders, that.reqHeaders);
+            Objects.equals(this.reqHeaders, that.reqHeaders) &&
+            Objects.equals(this.reqBody, that.reqBody) &&
+            this.validStatusCode == that.validStatusCode &&
+            Objects.equals(this.validBody, that.validBody);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(reqMethod, reqURL, reqHeaders, validStatusCode, validBody);
+        return Objects.hash(reqMethod, reqURL, reqHeaders, reqBody, validStatusCode, validBody);
     }
 }

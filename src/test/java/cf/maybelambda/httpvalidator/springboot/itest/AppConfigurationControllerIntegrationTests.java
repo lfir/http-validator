@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +35,8 @@ import static cf.maybelambda.httpvalidator.springboot.controller.AppConfiguratio
 import static cf.maybelambda.httpvalidator.springboot.controller.AppInfoController.ERROR_VALUE;
 import static cf.maybelambda.httpvalidator.springboot.itest.AppInfoControllerIntegrationTests.REQUEST_HEADERS_SNIPPET;
 import static cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService.BEARER_PREFIX;
+import static java.util.Collections.emptyList;
+import static javax.swing.text.html.FormSubmitEvent.MethodType.GET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -109,12 +110,16 @@ public class AppConfigurationControllerIntegrationTests {
 
     @Test
     public void canUpdateDataFileWithValidXML() throws Exception {
-        ValidationTask task = new ValidationTask(0, "http://example.com/api/test", Collections.emptyList(), 200, "");
+        ValidationTask task = new ValidationTask(
+            GET, "http://example.com/api/test", emptyList(), this.mapper.nullNode(), 200, ""
+        );
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
-                            +    "<validation reqmethod=\"0\" requrl=\"http://example.com/api/test\" "
-                            +        "reqheaders=\"\" ressc=\"200\" resbody=\"\"/>"
+                            +    "<validation>"
+                            +        "<url method=\"0\">http://example.com/api/test</url>"
+                            +        "<response statuscode=\"200\" />"
+                            +    "</validation>"
                             + "</validations>";
 
         MockMultipartFile file = new MockMultipartFile(
@@ -142,8 +147,10 @@ public class AppConfigurationControllerIntegrationTests {
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
-                            +    "<validation reqmethod=\"25\" requrl=\"http://example.com/api/test\" "
-                            +        "reqheaders=\"\" ressc=\"200\" resbody=\"\"/>"
+                            +    "<validation>"
+                            +        "<url method=\"25\">http://example.com/api/test</url>"
+                            +        "<resbody statuscode=\"200\"></resbody>"
+                            +    "</validation>"
                             + "</validations>";
 
         MockMultipartFile file = new MockMultipartFile(

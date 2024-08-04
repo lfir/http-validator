@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?><validations><validation reqmethod="0" requrl="http://example.com/api/test" reqheaders="" ressc="200" resbody=""/></validations>
+<?xml version="1.0" encoding="UTF-8"?><validations><validation><url method="0">http://example.com/api/test</url><response statuscode="200" /></validation></validations>
