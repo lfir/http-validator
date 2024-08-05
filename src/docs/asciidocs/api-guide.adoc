@@ -154,16 +154,26 @@ cd http-validator
 ./mvnw package
 ```
 
+Or download one of the precompiled artifacts from the https://github.com/lfir/http-validator/releases[releases] site
+and place it in the same location as the **config** directory.
+
 === Starting the application from the BASH terminal
 
-The following environment variables need to be set first:
+==== Environment variables that need to be set
 
 - **SENDGRID_APIKEY** - An api key from a SendGrid user with permission to send emails
 - **NOTIF_FROM** - Email address to be used as sender of the notifications
 - **NOTIF_TO** - Destination address for email notifications
 - **JWT_SECRET** - Encoded secret key for signing JWTs
 
-And then run
+==== Important files used by the application
+
+- **./config/application.properties** - Used to set the run schedule and location of the datafile
+- **./config/validations.xml** - File with the validation task definitions
+
+These two files need to be present in the **config** folder before starting the app.
+
+Finally, run
 
 ```bash
 java -jar target/http-validator-x.y.z.jar
@@ -304,19 +314,14 @@ include::{snippets}/can-update-data-file-with-valid-xml/http-response.adoc[]
 include::{snippets}/error400-when-update-run-schedule-request-with-invalid-cron-expression/curl-request.adoc[]
 
 
-== Important files used by the application
-
-- **./config/application.properties** - Used to set the run schedule and location of the datafile.
-Restarting the application manually after a change to this file is required so they enter in effect.
-- **./config/validations.xml** - File with the validation task definitions.
-- **./logs/spring-framework.log** - The main log file of the application.
-
-
 == Limitations and other relevant information
 
 - At this stage of the project Validation Tasks can only validate responses with empty body or
 discrete, text-only data like plaintext, CSV, HTML, JSON, etc.
+- The main log file of the application is **./logs/spring-framework.log**.
 - When the run schedule is updated from the API WebApplicationContext is restarted automatically to begin
 using it (PID remains the same, beans & variables like `start_time` are re-initialized).
-- If a network error occurs that prevents a task from completing a notification email is sent about that, but at this
+- Configuration changes done by updating **./config/application.properties** require manually restarting the application
+so they enter in effect.
+- If a network error occurs that prevents a task from completing it is considered failed and a notification email is sent about that, but at this
 point no more details are provided regarding the issue (i.e. if the connection was rejected or it timed out).
