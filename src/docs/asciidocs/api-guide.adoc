@@ -179,7 +179,7 @@ Finally, run
 java -jar target/http-validator-x.y.z.jar
 ```
 
-**NOTE:** If more than one version of Java is installed on the host a suitable one (**v17+**) might need to be specified
+**NOTE:** If more than one version of Java is installed on the host a suitable one (**v21+**) might need to be specified
 instead of the default before running the commands above, i.e.
 
 ```bash
