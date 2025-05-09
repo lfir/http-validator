@@ -166,16 +166,17 @@ public class ValidationService {
         for (int i = 0; i < results.size(); i++) {
             ValidationTask task = tasks.get(i);
             HttpSendOutcomeWrapper res = results.get(i);
-            String logmsg = "VALIDATION ";
+            String logMsg = "VALIDATION ";
+            String taskUrlAndId = task.reqURL().replaceAll("(?<=[^:/])/.+", "") + " [Task #" + i + "]";
             if (res.isWholeResponse() && task.isValid(res.getStatusCode(), res.getBody())) {
-                logmsg += "OK";
+                logMsg += "OK";
                 taskCounts[1]++;
             } else {
-                failures.add(new String[]{task.reqURL(), String.valueOf(res.getStatusCode()), res.getBody()});
-                logmsg += "FAILURE";
+                failures.add(new String[]{taskUrlAndId, String.valueOf(res.getStatusCode()), res.getBody()});
+                logMsg += "FAILURE";
                 taskCounts[2]++;
             }
-            logger.info(logmsg + " for: " + task.reqURL());
+            logger.info(logMsg + " " + taskUrlAndId);
         }
         // Send notification if there are any failures
         if (!failures.isEmpty()) {

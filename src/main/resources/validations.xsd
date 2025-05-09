@@ -62,6 +62,7 @@
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
+                        <xs:attribute name="id" type="xs:integer" />
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>

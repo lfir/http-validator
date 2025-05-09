@@ -66,12 +66,17 @@ An XML file for defining validation tasks, which is used to specify the details 
   - `<response>`: The content expected to be present in the body of the response (up to 1000 characters). **Required.**
     * `statuscode`: Attribute with the expected HTTP status code of the response. **Required.**
 
+Finally, an `id` attribute can _optionally_ be added to the `<validation>` elements; with value being
+the index of each element in the list of validations, i.e. "0" for the first one, "1" for the
+second and so on. It can help to easily find individual tasks in large files and reference them from
+the data in logs and notifications.
 
 === Example XML Tasks
 
 Below are some examples of validation tasks in XML format:
 
-```xml
+[source,xml]
+----
 <?xml version="1.0" encoding="UTF-8"?>
 <validations>
     <!-- Example Task 1 -->
@@ -102,7 +107,7 @@ Below are some examples of validation tasks in XML format:
         <response statuscode="404" />
     </validation>
 </validations>
-```
+----
 
 === Explanation of Examples
 
@@ -148,11 +153,12 @@ perform automated checks on your web application endpoints.
 
 === Compiling the executable jar file
 
-```bash
+[source,bash]
+----
 git clone https://github.com/lfir/http-validator.git
 cd http-validator
 ./mvnw package
-```
+----
 
 Or download one of the precompiled artifacts from the https://github.com/lfir/http-validator/releases[releases] site
 and place it in the same location as the **config** directory.
@@ -175,18 +181,20 @@ These two files need to be present in the **config** folder before starting the 
 
 Finally, run
 
-```bash
+[source,bash]
+----
 java -jar target/http-validator-x.y.z.jar
-```
+----
 
 **NOTE:** If more than one version of Java is installed on the host a suitable one (**v21+**) might need to be specified
 instead of the default before running the commands above, i.e.
 
-```bash
+[source,bash]
+----
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 ./mvnw...
 /path/to/java -jar...
-```
+----
 
 
 == API - Information endpoints
