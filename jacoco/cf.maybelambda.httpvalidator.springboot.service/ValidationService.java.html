@@ -166,23 +166,24 @@ public class ValidationService {
 <span class="fc bfc" id="L166" title="All 2 branches covered.">        for (int i = 0; i &lt; results.size(); i++) {</span>
 <span class="fc" id="L167">            ValidationTask task = tasks.get(i);</span>
 <span class="fc" id="L168">            HttpSendOutcomeWrapper res = results.get(i);</span>
-<span class="fc" id="L169">            String logmsg = &quot;VALIDATION &quot;;</span>
-<span class="fc bfc" id="L170" title="All 4 branches covered.">            if (res.isWholeResponse() &amp;&amp; task.isValid(res.getStatusCode(), res.getBody())) {</span>
-<span class="fc" id="L171">                logmsg += &quot;OK&quot;;</span>
-<span class="fc" id="L172">                taskCounts[1]++;</span>
+<span class="fc" id="L169">            String logMsg = &quot;VALIDATION &quot;;</span>
+<span class="fc" id="L170">            String taskUrlAndId = task.reqURL().replaceAll(&quot;(?&lt;=[^:/])/.+&quot;, &quot;&quot;) + &quot; [Task #&quot; + i + &quot;]&quot;;</span>
+<span class="fc bfc" id="L171" title="All 4 branches covered.">            if (res.isWholeResponse() &amp;&amp; task.isValid(res.getStatusCode(), res.getBody())) {</span>
+<span class="fc" id="L172">                logMsg += &quot;OK&quot;;</span>
+<span class="fc" id="L173">                taskCounts[1]++;</span>
             } else {
-<span class="fc" id="L174">                failures.add(new String[]{task.reqURL(), String.valueOf(res.getStatusCode()), res.getBody()});</span>
-<span class="fc" id="L175">                logmsg += &quot;FAILURE&quot;;</span>
-<span class="fc" id="L176">                taskCounts[2]++;</span>
+<span class="fc" id="L175">                failures.add(new String[]{taskUrlAndId, String.valueOf(res.getStatusCode()), res.getBody()});</span>
+<span class="fc" id="L176">                logMsg += &quot;FAILURE&quot;;</span>
+<span class="fc" id="L177">                taskCounts[2]++;</span>
             }
-<span class="fc" id="L178">            logger.info(logmsg + &quot; for: &quot; + task.reqURL());</span>
+<span class="fc" id="L179">            logger.info(logMsg + &quot; &quot; + taskUrlAndId);</span>
         }
         // Send notification if there are any failures
-<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (!failures.isEmpty()) {</span>
-<span class="fc" id="L182">            this.notificationService.sendVTaskErrorsNotification(failures);</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (!failures.isEmpty()) {</span>
+<span class="fc" id="L183">            this.notificationService.sendVTaskErrorsNotification(failures);</span>
         }
 
-<span class="fc" id="L185">        return taskCounts;</span>
+<span class="fc" id="L186">        return taskCounts;</span>
     }
 
     /**
@@ -191,16 +192,16 @@ public class ValidationService {
      * @return A map containing start time, time elapsed, total tasks, successful tasks and failed tasks.
      */
     public Map&lt;String, String&gt; getLastRunInfo() {
-<span class="fc" id="L194">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L195" title="All 2 branches covered.">        if (nonNull(this.lrTimeElapsed)) {</span>
-<span class="fc" id="L196">            res.put(START_TIME_KEY, this.lrStartDateTime);</span>
-<span class="fc" id="L197">            res.put(TIME_ELAPSED_KEY, String.valueOf(this.lrTimeElapsed.getSeconds()));</span>
-<span class="fc" id="L198">            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));</span>
-<span class="fc" id="L199">            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));</span>
-<span class="fc" id="L200">            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));</span>
+<span class="fc" id="L195">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        if (nonNull(this.lrTimeElapsed)) {</span>
+<span class="fc" id="L197">            res.put(START_TIME_KEY, this.lrStartDateTime);</span>
+<span class="fc" id="L198">            res.put(TIME_ELAPSED_KEY, String.valueOf(this.lrTimeElapsed.getSeconds()));</span>
+<span class="fc" id="L199">            res.put(TASKS_TOTAL_KEY, String.valueOf(this.lrTaskCounts[0]));</span>
+<span class="fc" id="L200">            res.put(TASKS_OK_KEY, String.valueOf(this.lrTaskCounts[1]));</span>
+<span class="fc" id="L201">            res.put(TASKS_FAILED_KEY, String.valueOf(this.lrTaskCounts[2]));</span>
         }
 
-<span class="fc" id="L203">        return res;</span>
+<span class="fc" id="L204">        return res;</span>
     }
 
     /**
@@ -209,7 +210,7 @@ public class ValidationService {
      * @return true if the configuration is valid, false otherwise
      */
     public boolean isValidConfig() {
-<span class="fc" id="L212">        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));</span>
+<span class="fc" id="L213">        return this.isValidCronExpression(this.env.getProperty(RUN_SCHEDULE_PROPERTY));</span>
     }
 
     /**
@@ -219,16 +220,16 @@ public class ValidationService {
      * @return true if the cron expression is valid, false otherwise
      */
     public boolean isValidCronExpression(String cronExpr) {
-<span class="fc" id="L222">        boolean ans = true;</span>
-<span class="fc bfc" id="L223" title="All 2 branches covered.">        if (!&quot;-&quot;.equals(cronExpr)) {</span>
+<span class="fc" id="L223">        boolean ans = true;</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">        if (!&quot;-&quot;.equals(cronExpr)) {</span>
             try {
-<span class="fc" id="L225">                CronExpression.parse(cronExpr);</span>
-<span class="fc" id="L226">            } catch (IllegalArgumentException e) {</span>
-<span class="fc" id="L227">                ans = false;</span>
-<span class="fc" id="L228">            }</span>
+<span class="fc" id="L226">                CronExpression.parse(cronExpr);</span>
+<span class="fc" id="L227">            } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L228">                ans = false;</span>
+<span class="fc" id="L229">            }</span>
         }
 
-<span class="fc" id="L231">        return ans;</span>
+<span class="fc" id="L232">        return ans;</span>
     }
 
     /**
@@ -236,41 +237,41 @@ public class ValidationService {
      *
      * @param client HTTP client
      */
-<span class="fc" id="L239">    void setClient(HttpClient client) { this.client = client; }</span>
+<span class="fc" id="L240">    void setClient(HttpClient client) { this.client = client; }</span>
 
     /**
      * Sets the email notification service. Used for testing purposes.
      *
      * @param service Email notification service
      */
-<span class="fc" id="L246">    void setNotificationService(EmailNotificationService service) { this.notificationService = service; }</span>
+<span class="fc" id="L247">    void setNotificationService(EmailNotificationService service) { this.notificationService = service; }</span>
 
     /**
      * Sets the validation task reader service. Used for testing purposes.
      *
      * @param taskReader XML validation task DAO
      */
-<span class="fc" id="L253">    void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }</span>
+<span class="fc" id="L254">    void setTaskReader(XMLValidationTaskDao taskReader) { this.taskReader = taskReader; }</span>
 
     /**
      * Sets the logger. Used for testing purposes.
      *
      * @param logger Logger
      */
-<span class="fc" id="L260">    void setLogger(Logger logger) { ValidationService.logger = logger; }</span>
+<span class="fc" id="L261">    void setLogger(Logger logger) { ValidationService.logger = logger; }</span>
 
     /**
      * Sets the environment object. Used for testing purposes.
      *
      * @param env Environment
      */
-<span class="fc" id="L267">    void setEnv(Environment env) { this.env = env; }</span>
+<span class="fc" id="L268">    void setEnv(Environment env) { this.env = env; }</span>
 
     /**
      * Sets the object mapper; for testing purposes.
      *
      * @param mapper The ObjectMapper to set.
      */
-<span class="fc" id="L274">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
+<span class="fc" id="L275">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <meta name="author" content="by Asta86">
 <title>HTTP Validator - Usage guide &amp; API reference</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
@@ -141,7 +141,7 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #content::before{content:none}
 #header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
 #header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
-#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header>h1:only-child{border-bottom:1px solid #dddddf;padding-bottom:8px}
 #header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
 #header .details span:first-child{margin-left:-.125em}
 #header .details span.email a{color:rgba(0,0,0,.85)}
@@ -163,6 +163,7 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #toctitle{color:#7a2518;font-size:1.2em}
 @media screen and (min-width:768px){#toctitle{font-size:1.375em}
 body.toc2{padding-left:15em;padding-right:0}
+body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
 #toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
 #toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
 #toc.toc2>ul{font-size:.9em;margin-bottom:0}
@@ -328,7 +329,7 @@ a.image{text-decoration:none;display:inline-block}
 a.image object{pointer-events:none}
 sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
 sup.footnote a,sup.footnoteref a{text-decoration:none}
-sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+sup.footnote a:active,sup.footnoteref a:active,#footnotes .footnote a:first-of-type:active{text-decoration:underline}
 #footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
 #footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
 #footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
@@ -655,6 +656,12 @@ separated by pipe (<code>|</code>, up to 3000 characters per element). <strong>O
 </li>
 </ol>
 </div>
+<div class="paragraph">
+<p>Finally, an <code>id</code> attribute can <em>optionally</em> be added to the <code>&lt;validation&gt;</code> elements; with value being
+the index of each element in the list of validations, i.e. "0" for the first one, "1" for the
+second and so on. It can help to easily find individual tasks in large files and reference them from
+the data in logs and notifications.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_example_xml_tasks"><a class="link" href="#_example_xml_tasks">2.2. Example XML Tasks</a></h3>
@@ -897,7 +904,7 @@ instead of the default before running the commands above, i.e.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/status HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -969,9 +976,9 @@ Vary: Origin
 Vary: Access-Control-Request-Method
 Vary: Access-Control-Request-Headers
 Content-Type: application/json
-Content-Length: 93
+Content-Length: 92
 
-{"start_time":"Sat, 12 Oct 2024 23:04:00 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
+{"start_time":"Fri, 9 May 2025 14:16:47 GMT","datafile_status":"OK","config_status":"ERROR"}</code></pre>
 </div>
 </div>
 </div>
@@ -980,7 +987,7 @@ Content-Length: 93
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/status' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -997,7 +1004,7 @@ time elapsed, number of total tasks, tasks ok and tasks failed.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/validator/lastrun HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag
 Accept: application/json
 Host: localhost:8080</code></pre>
 </div>
@@ -1117,9 +1124,9 @@ Vary: Origin
 Vary: Access-Control-Request-Method
 Vary: Access-Control-Request-Headers
 Content-Type: application/json
-Content-Length: 117
+Content-Length: 116
 
-{"start_time":"Sat, 12 Oct 2024 23:04:00 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
+{"start_time":"Fri, 9 May 2025 14:16:49 GMT","tasks_failed":"1","tasks_total":"1","tasks_ok":"0","time_elapsed":"0"}</code></pre>
 </div>
 </div>
 </div>
@@ -1128,7 +1135,7 @@ Content-Length: 117
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/lastrun' -i -X GET \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag' \
     -H 'Accept: application/json'</code></pre>
 </div>
 </div>
@@ -1151,7 +1158,7 @@ to the predefined <a href="https://github.com/lfir/http-validator/blob/main/src/
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/datafile HTTP/1.1
 Content-Type: multipart/form-data; boundary=6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag
 Host: localhost:8080
 
 --6o2knFse3p53ty9dmcQvWAIx1zInP11uCfbm
@@ -1241,7 +1248,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/datafile' -i -X PUT \
     -H 'Content-Type: multipart/form-data' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag' \
     -F 'file=@validations.xml;type=application/xml'</code></pre>
 </div>
 </div>
@@ -1259,7 +1266,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PUT /api/validator/runschedule HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag
 Content-Length: 29
 Host: localhost:8080
 
@@ -1344,7 +1351,7 @@ Vary: Access-Control-Request-Headers</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/validator/runschedule' -i -X PUT \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3Mjg3NzQyNDAsImV4cCI6MTcyODc3Nzg0MH0.pTh7H3XB1Y_GuRi11lnOXo_HpmPuCsbPKfP_inxRW2dDcO_tmk-JYyK-yGyCTwpe4Ya_PnBqzDyWUg1zAh9qTA' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjZi5tYXliZWxhbWJkYS5odHRwdmFsaWRhdG9yLnNwcmluZ2Jvb3Quc2VydmljZS5Kd3RBdXRoZW50aWNhdGlvblNlcnZpY2UiLCJpYXQiOjE3NDY4MDAyMDksImV4cCI6MTc0NjgwMzgwOX0.A0ArtnoM3ywfnb6N0Bo0OPNAaDa-WkA5UnRuBj_M883I9pKqWCa3xApFwoxUS9C0jVV_bDvejfwg6gLJo-58ag' \
     -d '{"cron_expression":"* 2 * ?"}'</code></pre>
 </div>
 </div>
@@ -1383,7 +1390,7 @@ point no more details are provided regarding the issue (i.e. if the connection w
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-10-12 23:03:35 UTC
+Last updated 2025-05-09 14:16:30 UTC
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
