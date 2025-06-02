@@ -14,7 +14,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.*;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.APIKEY_PROPERTY;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE1;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE2;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.FROM_PROPERTY;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.TO_PROPERTY;
 import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
 import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_MSG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class EmailNotificationServiceTests {
     private final Logger logger = mock(Logger.class);
