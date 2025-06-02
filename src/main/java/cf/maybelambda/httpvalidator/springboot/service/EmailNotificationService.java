@@ -1,12 +1,10 @@
 package cf.maybelambda.httpvalidator.springboot.service;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
+import com.mailgun.api.v3.MailgunMessagesApi;
+import com.mailgun.client.MailgunClient;
+import com.mailgun.model.message.Message;
+import com.mailgun.model.message.MessageResponse;
+import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.rmi.ConnectIOException;
 import java.util.List;
 
@@ -24,17 +21,17 @@ import static io.micrometer.common.util.StringUtils.truncate;
 import static java.util.Objects.isNull;
 
 /**
- * Service to send email notifications using SendGrid.
+ * Service to send email notifications using external SMTP service.
  */
 @Service
 public class EmailNotificationService {
     static final String BODY_LINE1 = "Request URL: ";
     static final String BODY_LINE2 = "Response Status Code: ";
     static final String BODY_LINE3 = "Response body: ";
-    static final String APIKEY_PROPERTY = "sendgrid.apikey";
+    static final String APIKEY_PROPERTY = "mailer.apikey";
     static final String FROM_PROPERTY = "notifications.from";
     static final String TO_PROPERTY = "notifications.to";
-    private SendGrid client;
+    private MailgunMessagesApi client;
     private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
 
     @Autowired
@@ -71,21 +68,21 @@ public class EmailNotificationService {
      * @throws ConnectIOException If an error occurs while sending the email.
      */
     void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
-        Email from = new Email(this.getFrom());
-        from.setName("Chronos Maybelambda");
-        Email to = new Email(this.getTo());
-        Content content = new Content("text/plain", body);
-        Mail mail = new Mail(from, subject, to, content);
+        if (!this.isValidConfig()) return;
 
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
+        if (isNull(this.client)) this.client = MailgunClient.config(this.getApiKey()).createApi(MailgunMessagesApi.class);
+
+        Message message = Message.builder()
+            .from(this.getFrom())
+            .to(this.getTo())
+            .subject(subject)
+            .text(body)
+            .build();
+
         try {
-            request.setBody(mail.build());
-            if (isNull(this.client)) { this.client = new SendGrid(this.getApiKey()); }
-            Response res = this.client.api(request);
-            logger.info("Email delivery result: Status Code: {}", res.getStatusCode() + " - Body: " + res.getBody());
-        } catch (IOException e) {
+            MessageResponse res = this.client.sendMessage(this.getFrom().split("@")[1], message);
+            logger.info("Email delivery result: " + res.getMessage());
+        } catch (FeignException e) {
             String errmsg = "POST request for delivery of the Notification Email could not be completed.";
             logger.error(errmsg);
             throw new ConnectIOException(errmsg, e);
@@ -126,7 +123,7 @@ public class EmailNotificationService {
      * <ul>
      *     <li>The "notifications.from" property, which should contain the sender's email address.</li>
      *     <li>The "notifications.to" property, which should contain the recipient's email address.</li>
-     *     <li>The "sendgrid.apikey" property, which should contain the SendGrid API key for authentication.</li>
+     *     <li>The "mailer.apikey" property, which should contain the API key for authentication with SMTP service.</li>
      * </ul>
      * If any of these properties are blank or missing, the configuration is considered invalid.
      *
@@ -137,7 +134,7 @@ public class EmailNotificationService {
     }
 
     /**
-     * Gets the SendGrid API key from the environment.
+     * Gets the API key of the mailing service from the environment.
      *
      * @return The API key as a string.
      */
@@ -158,11 +155,11 @@ public class EmailNotificationService {
     String getTo() { return this.env.getProperty(TO_PROPERTY); }
 
     /**
-     * Sets the SendGrid client; for testing purposes.
+     * Sets the Mailer client; for testing purposes.
      *
-     * @param sg The SendGrid client to set.
+     * @param cl The client to set.
      */
-    void setClient(SendGrid sg) { this.client = sg; }
+    void setClient(MailgunMessagesApi cl) { this.client = cl; }
 
     /**
      * Sets the logger; for testing purposes.

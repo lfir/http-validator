@@ -167,7 +167,7 @@ and place it in the same location as the **config** directory.
 
 ==== Environment variables that need to be set
 
-- **SENDGRID_APIKEY** - An api key from a SendGrid user with permission to send emails
+- **MAILER_APIKEY** - An API key from the mailing service with permission to send emails
 - **NOTIF_FROM** - Email address to be used as sender of the notifications
 - **NOTIF_TO** - Destination address for email notifications
 - **JWT_SECRET** - Encoded secret key for signing JWTs

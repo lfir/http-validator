@@ -1,24 +1,20 @@
 package cf.maybelambda.httpvalidator.springboot.service;
 
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
+import com.mailgun.api.v3.MailgunMessagesApi;
+import com.mailgun.model.message.Message;
+import com.mailgun.model.message.MessageResponse;
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.rmi.ConnectIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.APIKEY_PROPERTY;
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE1;
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.BODY_LINE2;
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.FROM_PROPERTY;
-import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.TO_PROPERTY;
+import static cf.maybelambda.httpvalidator.springboot.service.EmailNotificationService.*;
 import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
 import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_MSG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,19 +23,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class EmailNotificationServiceTests {
     private final Logger logger = mock(Logger.class);
-    private final SendGrid sg = mock(SendGrid.class);
+    private final MailgunMessagesApi cl = mock(MailgunMessagesApi.class);
     private final Environment env = mock(Environment.class);
     private EmailNotificationService mailServ;
 
     @BeforeEach
     void setUp() {
         this.mailServ = new EmailNotificationService();
-        this.mailServ.setClient(this.sg);
+        this.mailServ.setClient(this.cl);
         this.mailServ.setEnv(this.env);
     }
 
@@ -86,11 +81,13 @@ public class EmailNotificationServiceTests {
     }
 
     @Test
-    void sendVTaskErrorsNotificationSendsEmailViaSendgridClient() throws Exception {
-        Response res = mock(Response.class);
-        given(res.getStatusCode()).willReturn(200);
-        given(res.getBody()).willReturn("");
-        given(this.sg.api(any(Request.class))).willReturn(res);
+    void sendVTaskErrorsNotificationSendsEmailViaMailerClient() throws Exception {
+        given(this.env.getProperty(APIKEY_PROPERTY)).willReturn("apiKey");
+        given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
+        given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
+        MessageResponse res = mock(MessageResponse.class);
+        given(res.getMessage()).willReturn("");
+        given(this.cl.sendMessage(any(String.class), any(Message.class))).willReturn(res);
 
         String[] ss = { "", "", "" };
         List<String[]> strs = new ArrayList<>();
@@ -99,24 +96,29 @@ public class EmailNotificationServiceTests {
         this.mailServ.sendVTaskErrorsNotification(strs);
 
         assertThat(this.mailServ.buildMailBody(strs)).isNotNull();
-        verify(this.sg).api(any(Request.class));
+        verify(this.cl).sendMessage(any(String.class), any(Message.class));
     }
 
     @Test
-    void sendAppTerminatedNotificationSendsEmailViaSendgridClient() throws Exception {
-        Response res = mock(Response.class);
-        given(res.getStatusCode()).willReturn(200);
-        given(res.getBody()).willReturn("");
-        given(this.sg.api(any(Request.class))).willReturn(res);
+    void sendAppTerminatedNotificationSendsEmailViaMailerClient() throws Exception {
+        given(this.env.getProperty(APIKEY_PROPERTY)).willReturn("apiKey");
+        given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
+        given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
+        MessageResponse res = mock(MessageResponse.class);
+        given(res.getMessage()).willReturn("");
+        given(this.cl.sendMessage(any(String.class), any(Message.class))).willReturn(res);
 
         this.mailServ.sendAppTerminatedNotification("");
 
-        verify(this.sg).api(any(Request.class));
+        verify(this.cl).sendMessage(any(String.class), any(Message.class));
     }
 
     @Test
-    void whenSendVTaskErrorsNotificationFailsToSendEmailErrorIsLogged() throws Exception {
-        given(this.sg.api(any(Request.class))).willThrow(IOException.class);
+    void whenSendVTaskErrorsNotificationFailsToSendEmailErrorIsLogged() {
+        given(this.env.getProperty(APIKEY_PROPERTY)).willReturn("apiKey");
+        given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
+        given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
+        given(this.cl.sendMessage(any(String.class), any(Message.class))).willThrow(FeignException.class);
 
         this.mailServ.setLogger(this.logger);
 
@@ -159,13 +161,21 @@ public class EmailNotificationServiceTests {
     }
 
     @Test
-    void emailNotificationServiceInstanceUsesNewSendGridClientToSendEmailWhenNoneWasSetBefore() throws Exception {
+    void emailNotificationServiceInstanceUsesNewMailerClientToSendEmailWhenNoneWasSetBefore() {
+        given(this.env.getProperty(APIKEY_PROPERTY)).willReturn("apiKey");
+        given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
+        given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
         EmailNotificationService serv = new EmailNotificationService();
         serv.setEnv(this.env);
         serv.setLogger(this.logger);
 
-        serv.sendAppTerminatedNotification("");
+        assertThrows(ConnectIOException.class, () -> serv.sendVTaskErrorsNotification(Collections.emptyList()));
+    }
 
-        verify(this.logger).info(anyString(), anyString());
+    @Test
+    void sendPlainTextEmailDoesNotAttemptRequestWhenConfigurationIsInvalid() throws Exception {
+        this.mailServ.sendAppTerminatedNotification("");
+
+        verifyNoInteractions(this.cl);
     }
 }

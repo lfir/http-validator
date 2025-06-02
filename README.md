@@ -9,7 +9,7 @@
 - Executes HTTP requests periodically and performs some basic checks on the response data 
 ("validation tasks").
 - Reads task information from a separate XML file.
-- Sends email notifications about invalid results (using [Sendgrid](https://sendgrid.com)'s service).
+- Sends email notifications about invalid results (using [Mailgun](https://mailgun.com)'s service).
 
 For more details check the following site:
 

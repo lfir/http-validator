@@ -10,7 +10,7 @@
     </parent>
     <groupId>cf.maybelambda</groupId>
     <artifactId>http-validator</artifactId>
-    <version>2.0.1</version>
+    <version>3.0.0</version>
     <name>http-validator</name>
     <description>Retrieves target HTTP resources and responses, validates them and notifies about their current status.</description>
 
@@ -37,11 +37,11 @@
             <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.sendgrid/sendgrid-java -->
+        <!-- https://mvnrepository.com/artifact/com.mailgun/mailgun-java -->
         <dependency>
-            <groupId>com.sendgrid</groupId>
-            <artifactId>sendgrid-java</artifactId>
-            <version>4.10.3</version>
+            <groupId>com.mailgun</groupId>
+            <artifactId>mailgun-java</artifactId>
+            <version>1.1.6</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
