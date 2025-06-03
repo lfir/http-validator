@@ -8,6 +8,7 @@ import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,6 @@ import java.util.List;
 import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
 import static io.micrometer.common.util.StringUtils.isBlank;
 import static io.micrometer.common.util.StringUtils.truncate;
-import static java.util.Objects.isNull;
 
 /**
  * Service to send email notifications using external SMTP service.
@@ -36,6 +36,10 @@ public class EmailNotificationService {
 
     @Autowired
     private Environment env;
+
+    public EmailNotificationService(@Value("${" + APIKEY_PROPERTY + "}") String apiKey) {
+        this.client = MailgunClient.config(apiKey).createApi(MailgunMessagesApi.class);
+    }
 
     /**
      * Builds the email body content from a list of validation results.
@@ -69,8 +73,6 @@ public class EmailNotificationService {
      */
     void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
         if (!this.isValidConfig()) return;
-
-        if (isNull(this.client)) this.client = MailgunClient.config(this.getApiKey()).createApi(MailgunMessagesApi.class);
 
         Message message = Message.builder()
             .from(this.getFrom())

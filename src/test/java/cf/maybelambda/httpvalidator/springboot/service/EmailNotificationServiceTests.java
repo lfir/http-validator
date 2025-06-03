@@ -39,7 +39,7 @@ public class EmailNotificationServiceTests {
 
     @BeforeEach
     void setUp() {
-        this.mailServ = new EmailNotificationService();
+        this.mailServ = new EmailNotificationService("apiKey");
         this.mailServ.setClient(this.cl);
         this.mailServ.setEnv(this.env);
     }
@@ -171,7 +171,7 @@ public class EmailNotificationServiceTests {
         given(this.env.getProperty(APIKEY_PROPERTY)).willReturn("apiKey");
         given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
         given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
-        EmailNotificationService serv = new EmailNotificationService();
+        EmailNotificationService serv = new EmailNotificationService("apiKey");
         serv.setEnv(this.env);
         serv.setLogger(this.logger);
 
