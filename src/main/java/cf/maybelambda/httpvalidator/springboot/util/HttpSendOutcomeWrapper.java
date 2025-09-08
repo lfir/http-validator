@@ -1,5 +1,8 @@
 package cf.maybelambda.httpvalidator.springboot.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.http.HttpResponse;
 
 import static java.util.Objects.isNull;
@@ -13,7 +16,6 @@ import static java.util.Objects.nonNull;
  * of the outcome and to retrieve relevant details.
  */
 public class HttpSendOutcomeWrapper {
-
     /**
      * Status code assigned to exceptional send results arising from network errors.
      */
@@ -26,6 +28,7 @@ public class HttpSendOutcomeWrapper {
 
     private HttpResponse<String> res;
     private Throwable ex;
+    private static Logger logger = LoggerFactory.getLogger(HttpSendOutcomeWrapper.class);
 
     /**
      * Constructs an instance wrapping a successful HTTP response.
@@ -42,6 +45,7 @@ public class HttpSendOutcomeWrapper {
      * @param ex the exception
      */
     public HttpSendOutcomeWrapper(Throwable ex) {
+        logger.error("HTTP EX: ", ex);
         this.ex = ex;
     }
 
