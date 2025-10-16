@@ -48,7 +48,8 @@ import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 @Service
 public class ValidationService {
     public static final String HEADER_KEY_VALUE_DELIMITER = "|";
-    private final Duration TIMEOUT_SECONDS = Duration.ofSeconds(10);
+    private static final Duration CONNECT_TIMEOUT_SECONDS = Duration.ofSeconds(10);
+    private static final Duration REQUEST_TIMEOUT_SECONDS = Duration.ofSeconds(30);
     private Duration lrTimeElapsed;
     private String lrStartDateTime;
     private int[] lrTaskCounts;
@@ -69,7 +70,7 @@ public class ValidationService {
      */
     public ValidationService() {
         this.client = HttpClient.newBuilder()
-            .connectTimeout(TIMEOUT_SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS)
             .followRedirects(HttpClient.Redirect.ALWAYS).build();
     }
 
@@ -121,7 +122,7 @@ public class ValidationService {
             HttpRequest.Builder req = HttpRequest.newBuilder();
             req.uri(URI.create(task.reqURL()));
             task.reqHeaders().forEach(h -> req.headers(h.split(Pattern.quote(HEADER_KEY_VALUE_DELIMITER))));
-            req.timeout(TIMEOUT_SECONDS);
+            req.timeout(REQUEST_TIMEOUT_SECONDS);
             if (POST.equals(task.reqMethod())) {
                 req.POST(ofString(this.mapper.writeValueAsString(task.reqBody())));
             }
