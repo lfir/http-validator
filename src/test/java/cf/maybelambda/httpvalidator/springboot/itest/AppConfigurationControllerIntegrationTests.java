@@ -56,7 +56,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles("test")
 @SpringBootTest
 public class AppConfigurationControllerIntegrationTests {
-    public static String UPD_DATAFILE_ERRORS_DESCR = INVALID_DATA_FILE_ERROR_MSG + " or " + UPD_DATA_FILE_ERROR_MSG;
+    public static final String UPD_DATAFILE_ERRORS_DESCR = INVALID_DATA_FILE_ERROR_MSG + " or " + UPD_DATA_FILE_ERROR_MSG;
     private String testsToken;
     private MockMvc mockMvc;
 
@@ -138,12 +138,12 @@ public class AppConfigurationControllerIntegrationTests {
             .andDo(document("{method-name}", REQUEST_HEADERS_SNIPPET));
 
         assertThat(this.dao.isDataFileStatusOk()).isTrue();
-        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
+        assertThat(this.dao.getAll().getFirst()).isEqualTo(task);
     }
 
     @Test
     public void error400WhenUpdateDataFileRequestWithInvalidXML() throws Exception {
-        ValidationTask task = this.dao.getAll().get(0);
+        ValidationTask task = this.dao.getAll().getFirst();
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
@@ -175,6 +175,6 @@ public class AppConfigurationControllerIntegrationTests {
             );
 
         // Verify the original file contents have not been modified
-        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
+        assertThat(this.dao.getAll().getFirst()).isEqualTo(task);
     }
 }

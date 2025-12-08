@@ -117,7 +117,7 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
-        assertEquals(1, this.tasks.get(0).reqHeaders().size());
+        assertEquals(1, this.tasks.getFirst().reqHeaders().size());
         verify(this.ns).sendVTaskErrorsNotification(anyList());
     }
 
@@ -134,7 +134,7 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
-        assertThat(this.dao.getAll().get(0).reqHeaders().isEmpty()).isTrue();
+        assertThat(this.dao.getAll().getFirst().reqHeaders().isEmpty()).isTrue();
         verify(this.logger).info(anyString());
     }
 

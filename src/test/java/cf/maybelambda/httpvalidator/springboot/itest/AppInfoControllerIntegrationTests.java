@@ -51,10 +51,14 @@ public class AppInfoControllerIntegrationTests {
     );
     public static final String START_TIME_DESCR = "The start time of the application in a formatted string";
     public static final String START_TIME_LR_DESCR = "The start time of the last run in a formatted string";
-    public static final String DATAFILE_STATUS_DESCR = "`OK`: Data file status is okay, i.e. it "
-        + "exists and is readable\n\n`ERROR`: Data file status is not okay";
-    public static final String CONFIG_STATUS_DESCR = "`OK`: Both mail and validation configurations are okay (run "
-        + "schedule, credentials, from and to addresses)\n\n`ERROR`: Either mail or validation configuration is not okay";
+    public static final String DATAFILE_STATUS_DESCR = """
+            `OK`: Data file status is okay, i.e. it exists and is readable
+            
+            `ERROR`: Data file status is not okay""";
+    public static final String CONFIG_STATUS_DESCR = """
+            `OK`: Both mail and validation configurations are okay (run schedule, credentials, from and to addresses)
+            
+            `ERROR`: Either mail or validation configuration is not okay""";
     public static final String TIME_ELAPSED_DESCR = "Duration of the last run";
     public static final String TASKS_TOTAL_DESCR = "The total number of tasks to be processed in the last run";
     public static final String TASKS_OK_DESCR = "The number of tasks with expected results";
