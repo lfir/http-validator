@@ -3,8 +3,6 @@ package cf.maybelambda.httpvalidator.springboot.service;
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +10,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.management.modelmbean.XMLParseException;
 import java.io.FileNotFoundException;
@@ -70,8 +70,8 @@ public class ValidationService {
      */
     public ValidationService() {
         this.client = HttpClient.newBuilder()
-            .connectTimeout(CONNECT_TIMEOUT_SECONDS)
-            .followRedirects(HttpClient.Redirect.ALWAYS).build();
+                .connectTimeout(CONNECT_TIMEOUT_SECONDS)
+                .followRedirects(HttpClient.Redirect.ALWAYS).build();
     }
 
     /**
@@ -82,13 +82,13 @@ public class ValidationService {
      *
      * @throws FileNotFoundException if the data file is not found
      * @throws XMLParseException if there is an error parsing the XML file
-     * @throws JsonProcessingException when a validation task contains invalid JSON content
+     * @throws JacksonException when a validation task contains invalid JSON content
      * @throws ConnectIOException if there is an error sending notification email
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
      */
     @Scheduled(cron = "${" + RUN_SCHEDULE_PROPERTY + "}")
-    public void execValidations() throws FileNotFoundException, XMLParseException, JsonProcessingException,
+    public void execValidations() throws FileNotFoundException, XMLParseException, JacksonException,
             ConnectIOException, ExecutionException, InterruptedException {
         // Record the start date-time of the validation process
         Instant start = Instant.now();
@@ -113,9 +113,9 @@ public class ValidationService {
      * @return a list of HttpSendOutcomeWrapper objects containing the responses or exceptions
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
-     * @throws JsonProcessingException when a validation task contains invalid JSON content
+     * @throws JacksonException when a validation task contains invalid JSON content
      */
-    List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException, JsonProcessingException {
+    List<HttpSendOutcomeWrapper> buildAndExecuteRequests(List<ValidationTask> tasks) throws ExecutionException, InterruptedException, JacksonException {
         // Build HTTP requests from the validation tasks
         List<HttpRequest> reqs = new ArrayList<>();
         for (ValidationTask task : tasks) {
@@ -134,13 +134,13 @@ public class ValidationService {
         // Send the requests asynchronously and store the responses or exceptions in the results list
         // Use the index of each request to store the corresponding response or exception
         List<CompletableFuture<Void>> futures = IntStream.range(0, reqs.size())
-            .mapToObj(i -> client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())
-                .thenAccept(res -> results.set(i, new HttpSendOutcomeWrapper(res)))
-                .exceptionally(e -> {
-                    results.set(i, new HttpSendOutcomeWrapper(e));
-                    return null;
-                }))
-            .toList();
+                .mapToObj(i -> client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())
+                        .thenAccept(res -> results.set(i, new HttpSendOutcomeWrapper(res)))
+                        .exceptionally(e -> {
+                            results.set(i, new HttpSendOutcomeWrapper(e));
+                            return null;
+                        }))
+                .toList();
         // Wait for all requests to complete
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
 

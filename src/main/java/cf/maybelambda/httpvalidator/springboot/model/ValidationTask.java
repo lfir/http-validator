@@ -1,6 +1,6 @@
 package cf.maybelambda.httpvalidator.springboot.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import javax.swing.text.html.FormSubmitEvent.MethodType;
 import java.util.List;

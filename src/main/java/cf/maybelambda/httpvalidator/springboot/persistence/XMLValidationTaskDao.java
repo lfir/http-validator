@@ -1,8 +1,6 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.management.modelmbean.XMLParseException;
 import javax.swing.text.html.FormSubmitEvent.MethodType;

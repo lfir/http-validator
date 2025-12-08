@@ -4,15 +4,15 @@ import cf.maybelambda.httpvalidator.springboot.HTTPValidatorWebApp;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.management.modelmbean.XMLParseException;
 import java.io.IOException;
@@ -41,11 +41,11 @@ public class AppConfigurationControllerTests {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper mapper;
-    @MockBean
+    @MockitoBean
     private ValidationService valServ;
-    @MockBean
+    @MockitoBean
     private XMLValidationTaskDao dao;
-    @MockBean
+    @MockitoBean
     private JwtAuthenticationService authServ;
     private final Map<String, String> reqBody = new HashMap<>();
 

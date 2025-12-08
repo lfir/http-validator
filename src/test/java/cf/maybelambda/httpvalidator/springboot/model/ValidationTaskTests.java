@@ -1,7 +1,7 @@
 package cf.maybelambda.httpvalidator.springboot.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 
