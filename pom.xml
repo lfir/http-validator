@@ -15,13 +15,6 @@
     <description>Retrieves target HTTP resources and responses, validates them and notifies about their current status.</description>
 
     <dependencies>
-        <!-- Temporary helper: logs deprecated/removed configuration properties -->
-        <!-- Remove once the migration is completed -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-properties-migrator</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
