@@ -4,7 +4,6 @@ import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles("test")
 @SpringBootTest
 public class AppConfigurationControllerIntegrationTests {
-    public static String UPD_DATAFILE_ERRORS_DESCR = INVALID_DATA_FILE_ERROR_MSG + " or " + UPD_DATA_FILE_ERROR_MSG;
+    public static final String UPD_DATAFILE_ERRORS_DESCR = INVALID_DATA_FILE_ERROR_MSG + " or " + UPD_DATA_FILE_ERROR_MSG;
     private String testsToken;
     private MockMvc mockMvc;
 
@@ -138,12 +138,12 @@ public class AppConfigurationControllerIntegrationTests {
             .andDo(document("{method-name}", REQUEST_HEADERS_SNIPPET));
 
         assertThat(this.dao.isDataFileStatusOk()).isTrue();
-        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
+        assertThat(this.dao.getAll().getFirst()).isEqualTo(task);
     }
 
     @Test
     public void error400WhenUpdateDataFileRequestWithInvalidXML() throws Exception {
-        ValidationTask task = this.dao.getAll().get(0);
+        ValidationTask task = this.dao.getAll().getFirst();
 
         String xmlContent =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                             + "<validations>"
@@ -175,6 +175,6 @@ public class AppConfigurationControllerIntegrationTests {
             );
 
         // Verify the original file contents have not been modified
-        assertThat(this.dao.getAll().get(0)).isEqualTo(task);
+        assertThat(this.dao.getAll().getFirst()).isEqualTo(task);
     }
 }

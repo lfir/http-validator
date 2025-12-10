@@ -1,9 +1,6 @@
 package cf.maybelambda.httpvalidator.springboot.persistence;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -15,6 +12,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.management.modelmbean.XMLParseException;
 import javax.xml.parsers.DocumentBuilder;
@@ -127,12 +127,12 @@ public class XMLValidationTaskDaoTests {
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
-        assertEquals(GET, ans.get(0).reqMethod());
-        assertEquals(this.url.getTextContent(), ans.get(0).reqURL());
-        assertEquals(this.header.getTextContent(), ans.get(0).reqHeaders().get(0));
-        assertEquals(this.mapper.readTree(this.reqbody.getTextContent()), ans.get(0).reqBody());
-        assertEquals(Integer.parseInt(this.resBodyAttrs.getNamedItem(RES_SC_ATTR).getTextContent()), ans.get(0).validStatusCode());
-        assertEquals(this.response.getTextContent(), ans.get(0).validBody());
+        assertEquals(GET, ans.getFirst().reqMethod());
+        assertEquals(this.url.getTextContent(), ans.getFirst().reqURL());
+        assertEquals(this.header.getTextContent(), ans.getFirst().reqHeaders().getFirst());
+        assertEquals(this.mapper.readTree(this.reqbody.getTextContent()), ans.getFirst().reqBody());
+        assertEquals(Integer.parseInt(this.resBodyAttrs.getNamedItem(RES_SC_ATTR).getTextContent()), ans.getFirst().validStatusCode());
+        assertEquals(this.response.getTextContent(), ans.getFirst().validBody());
     }
 
     @Test
@@ -147,8 +147,8 @@ public class XMLValidationTaskDaoTests {
 
         List<ValidationTask> ans = this.taskDao.getAll();
 
-        assertThat(ans.get(0).reqHeaders().isEmpty()).isTrue();
-        assertEquals("", ans.get(0).validBody());
+        assertThat(ans.getFirst().reqHeaders().isEmpty()).isTrue();
+        assertEquals("", ans.getFirst().validBody());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class XMLValidationTaskDaoTests {
     }
 
     @Test
-    void whenJacksonThrowsJSONExceptionInGetAllThenErrorIsLogged() throws Exception {
+    void whenJacksonThrowsJSONExceptionInGetAllThenErrorIsLogged() {
         // Number of <validation> elements
         given(this.nodes.getLength()).willReturn(1);
         // 2 child nodes of <validation>: <url> and <reqbody>
@@ -169,7 +169,7 @@ public class XMLValidationTaskDaoTests {
         given(this.childNodes.item(1)).willReturn(this.reqbody);
         given(this.reqbody.getNodeName()).willReturn(REQ_BODY_TAG);
         given(this.reqbody.getTextContent()).willReturn("");
-        given(this.mapper.readTree(anyString())).willThrow(JsonProcessingException.class);
+        given(this.mapper.readTree(anyString())).willThrow(JacksonException.class);
 
         assertThrows(XMLParseException.class, () -> this.taskDao.getAll());
         verify(logger).error(anyString(), any(Throwable.class));

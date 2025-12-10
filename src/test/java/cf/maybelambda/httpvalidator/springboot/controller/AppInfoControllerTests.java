@@ -7,9 +7,9 @@ import cf.maybelambda.httpvalidator.springboot.service.JwtAuthenticationService;
 import cf.maybelambda.httpvalidator.springboot.service.ValidationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -34,15 +34,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AppInfoControllerTests {
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
+    @MockitoBean
     private XMLValidationTaskDao dao;
-    @MockBean
+    @MockitoBean
     private EmailNotificationService mailServ;
-    @MockBean
+    @MockitoBean
     private ValidationService valServ;
-    @MockBean
+    @MockitoBean
     private EventListenerService eventServ;
-    @MockBean
+    @MockitoBean
     private JwtAuthenticationService authServ;
 
     @Test

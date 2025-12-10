@@ -2,8 +2,6 @@ package cf.maybelambda.httpvalidator.springboot.service;
 
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +9,8 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -117,7 +117,7 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
-        assertEquals(1, this.tasks.get(0).reqHeaders().size());
+        assertEquals(1, this.tasks.getFirst().reqHeaders().size());
         verify(this.ns).sendVTaskErrorsNotification(anyList());
     }
 
@@ -134,7 +134,7 @@ public class ValidationServiceTests {
 
         this.vs.execValidations();
 
-        assertThat(this.dao.getAll().get(0).reqHeaders().isEmpty()).isTrue();
+        assertThat(this.dao.getAll().getFirst().reqHeaders().isEmpty()).isTrue();
         verify(this.logger).info(anyString());
     }
 
