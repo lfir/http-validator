@@ -3,8 +3,6 @@
 import cf.maybelambda.httpvalidator.springboot.model.ValidationTask;
 import cf.maybelambda.httpvalidator.springboot.persistence.XMLValidationTaskDao;
 import cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +10,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.management.modelmbean.XMLParseException;
 import java.io.FileNotFoundException;
@@ -70,8 +70,8 @@ public class ValidationService {
      */
 <span class="fc" id="L71">    public ValidationService() {</span>
 <span class="fc" id="L72">        this.client = HttpClient.newBuilder()</span>
-<span class="fc" id="L73">            .connectTimeout(CONNECT_TIMEOUT_SECONDS)</span>
-<span class="fc" id="L74">            .followRedirects(HttpClient.Redirect.ALWAYS).build();</span>
+<span class="fc" id="L73">                .connectTimeout(CONNECT_TIMEOUT_SECONDS)</span>
+<span class="fc" id="L74">                .followRedirects(HttpClient.Redirect.ALWAYS).build();</span>
 <span class="fc" id="L75">    }</span>
 
     /**
@@ -82,13 +82,13 @@ public class ValidationService {
      *
      * @throws FileNotFoundException if the data file is not found
      * @throws XMLParseException if there is an error parsing the XML file
-     * @throws JsonProcessingException when a validation task contains invalid JSON content
+     * @throws JacksonException when a validation task contains invalid JSON content
      * @throws ConnectIOException if there is an error sending notification email
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
      */
     @Scheduled(cron = &quot;${&quot; + RUN_SCHEDULE_PROPERTY + &quot;}&quot;)
-    public void execValidations() throws FileNotFoundException, XMLParseException, JsonProcessingException,
+    public void execValidations() throws FileNotFoundException, XMLParseException, JacksonException,
             ConnectIOException, ExecutionException, InterruptedException {
         // Record the start date-time of the validation process
 <span class="fc" id="L94">        Instant start = Instant.now();</span>
@@ -113,9 +113,9 @@ public class ValidationService {
      * @return a list of HttpSendOutcomeWrapper objects containing the responses or exceptions
      * @throws ExecutionException when an unhandled error occurs while processing the HTTP requests
      * @throws InterruptedException when interrupted before completing all the requests
-     * @throws JsonProcessingException when a validation task contains invalid JSON content
+     * @throws JacksonException when a validation task contains invalid JSON content
      */
-    List&lt;HttpSendOutcomeWrapper&gt; buildAndExecuteRequests(List&lt;ValidationTask&gt; tasks) throws ExecutionException, InterruptedException, JsonProcessingException {
+    List&lt;HttpSendOutcomeWrapper&gt; buildAndExecuteRequests(List&lt;ValidationTask&gt; tasks) throws ExecutionException, InterruptedException, JacksonException {
         // Build HTTP requests from the validation tasks
 <span class="fc" id="L120">        List&lt;HttpRequest&gt; reqs = new ArrayList&lt;&gt;();</span>
 <span class="fc bfc" id="L121" title="All 2 branches covered.">        for (ValidationTask task : tasks) {</span>
@@ -134,13 +134,13 @@ public class ValidationService {
         // Send the requests asynchronously and store the responses or exceptions in the results list
         // Use the index of each request to store the corresponding response or exception
 <span class="fc" id="L136">        List&lt;CompletableFuture&lt;Void&gt;&gt; futures = IntStream.range(0, reqs.size())</span>
-<span class="fc" id="L137">            .mapToObj(i -&gt; client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())</span>
-<span class="fc" id="L138">                .thenAccept(res -&gt; results.set(i, new HttpSendOutcomeWrapper(res)))</span>
-<span class="fc" id="L139">                .exceptionally(e -&gt; {</span>
-<span class="fc" id="L140">                    results.set(i, new HttpSendOutcomeWrapper(e));</span>
-<span class="fc" id="L141">                    return null;</span>
-                }))
-<span class="fc" id="L143">            .toList();</span>
+<span class="fc" id="L137">                .mapToObj(i -&gt; client.sendAsync(reqs.get(i), HttpResponse.BodyHandlers.ofString())</span>
+<span class="fc" id="L138">                        .thenAccept(res -&gt; results.set(i, new HttpSendOutcomeWrapper(res)))</span>
+<span class="fc" id="L139">                        .exceptionally(e -&gt; {</span>
+<span class="fc" id="L140">                            results.set(i, new HttpSendOutcomeWrapper(e));</span>
+<span class="fc" id="L141">                            return null;</span>
+                        }))
+<span class="fc" id="L143">                .toList();</span>
         // Wait for all requests to complete
 <span class="fc" id="L145">        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();</span>
 
@@ -275,4 +275,4 @@ public class ValidationService {
      */
 <span class="fc" id="L276">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
