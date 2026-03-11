@@ -1,0 +1,260 @@
+@startuml classDiagram
+
+title HTTP Validator - Class Diagram
+
+' Main Application Entry Point
+class HTTPValidatorWebApp {
+    - RUN_SCHEDULE_PROPERTY: String
+    - context: ConfigurableApplicationContext
+    --
+    + main(args: String[]): void
+    + restartAppContextWithNewRunSchedule(cronExpression: String): void
+    - setContext(context: ConfigurableApplicationContext): void
+}
+
+' Controllers (REST endpoints)
+class AppInfoController {
+    - START_TIME_KEY: String
+    - TIME_ELAPSED_KEY: String
+    - TASKS_TOTAL_KEY: String
+    - TASKS_OK_KEY: String
+    - TASKS_FAILED_KEY: String
+    - TASKS_ERRORS_KEY: String
+    - NO_LASTRUN_DATA_ERROR_MSG: String
+    - STATUS_ENDPOINT: String
+    - LAST_RUN_ENDPOINT: String
+    - ERROR_VALUE: String
+    - OK_VALUE: String
+    - DATAFILE_STATUS_KEY: String
+    - CONFIG_STATUS_KEY: String
+    - dao: XMLValidationTaskDao
+    - mailServ: EmailNotificationService
+    - valServ: ValidationService
+    - eventServ: EventListenerService
+    --
+    + informLastRunData(): ResponseEntity<Map<String,String>>
+    + informWebAppStatus(): ResponseEntity<Map<String,String>>
+}
+
+class AppConfigurationController {
+    - UPD_RUN_SCHEDULE_ENDPOINT: String
+    - UPD_DATA_FILE_ENDPOINT: String
+    - CRON_EXPRESSION_KEY: String
+    - INVALID_CRON_EXPRESSION_ERROR_MSG: String
+    - INVALID_DATA_FILE_ERROR_MSG: String
+    - UPD_DATA_FILE_ERROR_MSG: String
+    - valServ: ValidationService
+    - dao: XMLValidationTaskDao
+    --
+    + updateValidatorDataFile(file: MultipartFile): ResponseEntity<Map<String,String>>
+    + updateValidatorRunSchedule(body: Map<String,String>): ResponseEntity<Map<String,String>>
+}
+
+' Services
+class ValidationService {
+    - HEADER_KEY_VALUE_DELIMITER: String
+    - CONNECT_TIMEOUT_SECONDS: Duration
+    - REQUEST_TIMEOUT_SECONDS: Duration
+    - lrTimeElapsed: Duration
+    - lrStartDateTime: String
+    - lrTaskCounts: int[]
+    - client: HttpClient
+    - logger: Logger
+    - notificationService: EmailNotificationService
+    - taskReader: XMLValidationTaskDao
+    - env: Environment
+    - mapper: ObjectMapper
+    --
+    + buildAndExecuteRequests(tasks: List<ValidationTask>): List<HttpSendOutcomeWrapper>
+    + execValidations(): void
+    + getLastRunInfo(): Map<String,String>
+    + isValidConfig(): boolean
+    + isValidCronExpression(cronExpr: String): boolean
+    + processRequestResultsAndNotify(tasks: List<ValidationTask>, results: List<HttpSendOutcomeWrapper>): int[]
+    - setClient(client: HttpClient): void
+    - setNotificationService(service: EmailNotificationService): void
+    - setTaskReader(taskReader: XMLValidationTaskDao): void
+    - setLogger(logger: Logger): void
+    - setEnv(env: Environment): void
+    - setObjectMapper(mapper: ObjectMapper): void
+}
+
+class EventListenerService {
+    - startDateTime: String
+    - mailServ: EmailNotificationService
+    --
+    + getCurrentDateTime(): String
+    + getStartDateTime(): String
+    + notifyThatAppTerminated(): void
+    + setAppStartTime(): void
+    - setNotificationService(service: EmailNotificationService): void
+}
+
+class EmailNotificationService {
+    - BODY_LINE1: String
+    - BODY_LINE2: String
+    - BODY_LINE3: String
+    - APIKEY_PROPERTY: String
+    - FROM_PROPERTY: String
+    - TO_PROPERTY: String
+    - client: MailgunMessagesApi
+    - logger: Logger
+    - env: Environment
+    --
+    + isValidConfig(): boolean
+    + sendAppTerminatedNotification(endTime: String): void
+    + sendVTaskErrorsNotification(mailBody: List<String[]>): void
+    - EmailNotificationService(apiKey: String)
+    - buildMailBody(contents: List<String[]>): String
+    - getApiKey(): String
+    - getFrom(): String
+    - getTo(): String
+    - sendPlainTextEmail(subject: String, body: String): void
+    - setClient(cl: MailgunMessagesApi): void
+    - setEnv(env: Environment): void
+    - setLogger(logger: Logger): void
+}
+
+class JwtAuthenticationService {
+    - BEARER_PREFIX: String
+    - SECRET_PROPERTY: String
+    - logger: Logger
+    - env: Environment
+    --
+    + getNewEncodedSigningKey(): String
+    + getNewTokenValidFor(hours: int): String
+    + isValidToken(authorizationHeader: String): boolean
+    - extractAllClaims(token: String): Jws<Claims>
+    - getSecretKey(): SecretKey
+    - setEnv(env: Environment): void
+    - setLogger(logger: Logger): void
+}
+
+' Persistence
+class XMLValidationTaskDao {
+    - URL_TAG: String
+    - RES_TAG: String
+    - REQ_BODY_TAG: String
+    - HEADER_TAG: String
+    - VALIDATION_TAG: String
+    - REQ_METHOD_ATTR: String
+    - RES_SC_ATTR: String
+    - DATAFILE_PROPERTY: String
+    - SCHEMA_FILENAME: String
+    - xmlParser: DocumentBuilder
+    - logger: Logger
+    - tasks: List<ValidationTask>
+    - lastModifiedTime: long
+    - env: Environment
+    - mapper: ObjectMapper
+    --
+    + getAll(): List<ValidationTask>
+    + isDataFileStatusOk(): boolean
+    + updateDataFile(file: MultipartFile): void
+    - createVTaskFromNodes(validation: NodeList): ValidationTask
+    - getDataFilePath(): Path
+    - getDocData(): Document
+    - parseXMLInput(inputStream: InputStream): Document
+    - setEnv(env: Environment): void
+    - setLogger(logger: Logger): void
+    - setLastModifiedTime(time: long): void
+    - setObjectMapper(mapper: ObjectMapper): void
+    - setXmlParser(xmlParser: DocumentBuilder): void
+}
+
+class XMLErrorHandler {
+    - logger: Logger
+    - logmsg: String
+    --
+    + error(ex: SAXParseException): void
+    + fatalError(ex: SAXParseException): void
+    + parseInputOrThrow(f: ThrowingFunction, arg: Object, logger: Logger, msg: String): Object
+    + warning(ex: SAXParseException): void
+    - setLogger(logger: Logger): void
+}
+
+' Filters
+class JwtRequestFilter {
+    - AUTHORIZATION_HEADER_KEY: String
+    - authServ: JwtAuthenticationService
+    --
+    # doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain): void
+    - setAuthenticationService(authenticationService: JwtAuthenticationService): void
+}
+
+' Models
+class ValidationTask {
+    - reqMethod: MethodType
+    - reqURL: String
+    - reqHeaders: List<String>
+    - reqBody: JsonNode
+    - validStatusCode: int
+    - validBody: String
+    --
+    + equals(obj: Object): boolean
+    + hashCode(): int
+    + isValid(statusCode: int, body: String): boolean
+}
+
+' Utilities
+class HttpSendOutcomeWrapper {
+    - NET_ERR_CODE: int
+    - NET_ERR_MSG: String
+    - res: HttpResponse<String>
+    - ex: Throwable
+    --
+    + getBody(): String
+    + getStatusCode(): int
+    + HttpSendOutcomeWrapper(ex: Throwable)
+    + HttpSendOutcomeWrapper(res: HttpResponse<String>)
+    + isWholeResponse(): boolean
+    - setResponse(res: HttpResponse<String>): void
+}
+
+' Relationships
+HTTPValidatorWebApp --> ValidationService : uses
+HTTPValidatorWebApp --> EventListenerService : uses
+
+AppInfoController --> ValidationService : depends
+AppInfoController --> XMLValidationTaskDao : depends
+AppInfoController --> EmailNotificationService : depends
+AppInfoController --> EventListenerService : depends
+
+AppConfigurationController --> ValidationService : depends
+AppConfigurationController --> XMLValidationTaskDao : depends
+
+ValidationService --> ValidationTask : manages
+ValidationService --> XMLValidationTaskDao : uses
+ValidationService --> HttpSendOutcomeWrapper : returns
+ValidationService --> EmailNotificationService : uses
+
+EventListenerService --> EmailNotificationService : uses
+
+JwtRequestFilter --> JwtAuthenticationService : uses
+
+XMLValidationTaskDao --> ValidationTask : creates
+XMLValidationTaskDao --> XMLErrorHandler : uses
+
+' Notes and patterns
+note right of HTTPValidatorWebApp
+  **Key Patterns**:
+  - Orchestrator (HTTPValidatorWebApp)
+  - Service layer (ValidationService, EmailNotificationService)
+  - DAO for XML data (XMLValidationTaskDao)
+  - Filter-based auth (JwtRequestFilter + JwtAuthenticationService)
+end note
+
+note right of ValidationService
+  **Core Validation Engine**
+  - Loads tasks from XMLValidationTaskDao
+  - Executes HTTP requests asynchronously
+  - Aggregates results and notifies via EmailNotificationService
+end note
+
+note right of XMLValidationTaskDao
+  **Persistence / XML loader**
+  - Parses and validates XML datafile against validations.xsd
+  - Exposes `getAll()` and `updateDataFile()` for controllers
+end note
+
+@enduml

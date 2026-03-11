@@ -28,5 +28,8 @@ and the parts that need more attention.
 
 * https://github.com/lfir/http-validator/network/dependencies[Dependency graph]
 
+**UML diagram**
+
+* https://raw.githubusercontent.com/lfir/http-validator/refs/heads/main/src/docs/classDiagram.png[Class Diagram]
 
 ==== Thank you for using the HTTP Validator!
