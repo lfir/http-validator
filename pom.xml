@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>cf.maybelambda</groupId>
     <artifactId>http-validator</artifactId>
-    <version>3.0.3</version>
+    <version>4.0.0</version>
     <name>http-validator</name>
     <description>Retrieves target HTTP resources and responses, validates them and notifies about their current status.</description>
 
@@ -63,7 +63,7 @@
     </dependencies>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     </properties>
 
