@@ -6,10 +6,10 @@
 
 ### Main features
 
-- Executes HTTP requests periodically and performs some basic checks on the response data 
-("validation tasks").
+- Executes HTTP requests periodically and performs some basic checks on the response data
+  ("validation tasks").
 - Reads task information from a separate XML file.
-- Sends email notifications about invalid results (using [Mailgun](https://mailgun.com)'s service).
+- Sends email notifications about invalid results.
 
 For more details check the following site:
 

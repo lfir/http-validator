@@ -151,10 +151,10 @@ public class EmailNotificationServiceTests {
     void whenMailSenderIsNullIsValidConfigReturnsFalse() {
         given(this.env.getProperty(FROM_PROPERTY)).willReturn("a@a.com");
         given(this.env.getProperty(TO_PROPERTY)).willReturn("b@b.com");
-        EmailNotificationService serv = new EmailNotificationService(this.mailSender);
+        EmailNotificationService serv = new EmailNotificationService(null);
         serv.setEnv(this.env);
 
-        assertThat(serv.isValidConfig()).isTrue();
+        assertThat(serv.isValidConfig()).isFalse();
     }
 
     @Test
