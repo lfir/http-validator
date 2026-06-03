@@ -6,7 +6,7 @@ http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLErrorHandl
 http-validator,cf.maybelambda.httpvalidator.springboot.persistence,XMLParseException,0,5,0,0,0,2,0,1,0,1
 http-validator,cf.maybelambda.httpvalidator.springboot.service,ValidationService,0,385,0,16,0,78,0,27,0,19
 http-validator,cf.maybelambda.httpvalidator.springboot.service,JwtAuthenticationService,0,98,0,4,0,25,0,11,0,9
-http-validator,cf.maybelambda.httpvalidator.springboot.service,EmailNotificationService,0,176,1,13,0,45,1,17,0,11
+http-validator,cf.maybelambda.httpvalidator.springboot.service,EmailNotificationService,0,176,0,14,0,45,0,18,0,11
 http-validator,cf.maybelambda.httpvalidator.springboot.service,EventListenerService,0,23,0,0,0,9,0,6,0,6
 http-validator,cf.maybelambda.httpvalidator.springboot,HTTPValidatorWebApp,8,56,0,2,1,14,0,8,0,7
 http-validator,cf.maybelambda.httpvalidator.springboot.util,HttpSendOutcomeWrapper,0,50,0,8,0,11,0,10,0,6
