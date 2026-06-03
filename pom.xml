@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.3</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>cf.maybelambda</groupId>
     <artifactId>http-validator</artifactId>
-    <version>4.0.0</version>
+    <version>5.0.0</version>
     <name>http-validator</name>
     <description>Retrieves target HTTP resources and responses, validates them and notifies about their current status.</description>
 
@@ -37,11 +38,9 @@
             <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.mailgun/mailgun-java -->
         <dependency>
-            <groupId>com.mailgun</groupId>
-            <artifactId>mailgun-java</artifactId>
-            <version>2.3</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -74,7 +73,8 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-            <!-- Runs JUnit tests under code coverage and creates a coverage report (target/site/jacoco/index.html). -->
+            <!-- Runs JUnit tests under code coverage and creates a coverage report
+            (target/site/jacoco/index.html). -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -153,7 +153,8 @@
                         <configuration>
                             <outputDirectory>${project.build.directory}/site/javadoc</outputDirectory>
                             <links>
-                                <link>https://docs.oracle.com/en/java/javase/${java.version}/docs/api/</link>
+                                <link>
+                                    https://docs.oracle.com/en/java/javase/${java.version}/docs/api/</link>
                             </links>
                         </configuration>
                     </execution>

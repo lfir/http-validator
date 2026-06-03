@@ -14,7 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.management.modelmbean.XMLParseException;
+import cf.maybelambda.httpvalidator.springboot.persistence.XMLParseException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

@@ -94,23 +94,20 @@ class EmailNotificationService {
     - BODY_LINE1: String
     - BODY_LINE2: String
     - BODY_LINE3: String
-    - APIKEY_PROPERTY: String
     - FROM_PROPERTY: String
     - TO_PROPERTY: String
-    - client: MailgunMessagesApi
+    - mailSender: JavaMailSender
     - logger: Logger
     - env: Environment
     --
     + isValidConfig(): boolean
     + sendAppTerminatedNotification(endTime: String): void
     + sendVTaskErrorsNotification(mailBody: List<String[]>): void
-    - EmailNotificationService(apiKey: String)
+    + EmailNotificationService(mailSender: JavaMailSender)
     - buildMailBody(contents: List<String[]>): String
-    - getApiKey(): String
     - getFrom(): String
     - getTo(): String
     - sendPlainTextEmail(subject: String, body: String): void
-    - setClient(cl: MailgunMessagesApi): void
     - setEnv(env: Environment): void
     - setLogger(logger: Logger): void
 }

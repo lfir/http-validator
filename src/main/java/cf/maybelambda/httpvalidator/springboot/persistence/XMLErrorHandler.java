@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXParseException;
 
-import javax.management.modelmbean.XMLParseException;
 
 /**
  * Custom error handler for XML schema validation errors. Also contains utility methods related to error handling.
