@@ -16,7 +16,6 @@ import org.xml.sax.SAXException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.management.modelmbean.XMLParseException;
 import javax.swing.text.html.FormSubmitEvent.MethodType;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -55,7 +54,7 @@ public class XMLValidationTaskDao {
     static final String DATAFILE_PROPERTY = &quot;datafile&quot;;
     private static final String SCHEMA_FILENAME = &quot;validations.xsd&quot;;
     private DocumentBuilder xmlParser;
-<span class="fc" id="L58">    private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);</span>
+<span class="fc" id="L57">    private static Logger logger = LoggerFactory.getLogger(XMLValidationTaskDao.class);</span>
     private List&lt;ValidationTask&gt; tasks;
     private long lastModifiedTime;
 
@@ -73,28 +72,28 @@ public class XMLValidationTaskDao {
      * @throws SAXException if an error occurs during schema parsing.
      * @throws IOException if an error occurs during schema file loading.
      */
-<span class="fc" id="L76">    public XMLValidationTaskDao() throws ParserConfigurationException, SAXException, IOException {</span>
-<span class="fc" id="L77">        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);</span>
-<span class="fc" id="L78">        Schema schema = schemaFactory.newSchema((new ClassPathResource(SCHEMA_FILENAME)).getURL());</span>
-<span class="fc" id="L79">        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();</span>
-<span class="fc" id="L80">        dbFactory.setSchema(schema);</span>
-<span class="fc" id="L81">        dbFactory.setIgnoringElementContentWhitespace(true);</span>
-<span class="fc" id="L82">        dbFactory.setNamespaceAware(true);</span>
-<span class="fc" id="L83">        dbFactory.setFeature(&quot;http://apache.org/xml/features/disallow-doctype-decl&quot;, true);</span>
-<span class="fc" id="L84">        dbFactory.setFeature(&quot;http://xml.org/sax/features/external-general-entities&quot;, false);</span>
-<span class="fc" id="L85">        dbFactory.setFeature(&quot;http://xml.org/sax/features/external-parameter-entities&quot;, false);</span>
-<span class="fc" id="L86">        this.xmlParser = dbFactory.newDocumentBuilder();</span>
+<span class="fc" id="L75">    public XMLValidationTaskDao() throws ParserConfigurationException, SAXException, IOException {</span>
+<span class="fc" id="L76">        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);</span>
+<span class="fc" id="L77">        Schema schema = schemaFactory.newSchema((new ClassPathResource(SCHEMA_FILENAME)).getURL());</span>
+<span class="fc" id="L78">        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L79">        dbFactory.setSchema(schema);</span>
+<span class="fc" id="L80">        dbFactory.setIgnoringElementContentWhitespace(true);</span>
+<span class="fc" id="L81">        dbFactory.setNamespaceAware(true);</span>
+<span class="fc" id="L82">        dbFactory.setFeature(&quot;http://apache.org/xml/features/disallow-doctype-decl&quot;, true);</span>
+<span class="fc" id="L83">        dbFactory.setFeature(&quot;http://xml.org/sax/features/external-general-entities&quot;, false);</span>
+<span class="fc" id="L84">        dbFactory.setFeature(&quot;http://xml.org/sax/features/external-parameter-entities&quot;, false);</span>
+<span class="fc" id="L85">        this.xmlParser = dbFactory.newDocumentBuilder();</span>
 
-<span class="fc" id="L88">        XMLErrorHandler xsdErrorHandler = new XMLErrorHandler();</span>
-<span class="fc" id="L89">        this.xmlParser.setErrorHandler(xsdErrorHandler);</span>
-<span class="fc" id="L90">    }</span>
+<span class="fc" id="L87">        XMLErrorHandler xsdErrorHandler = new XMLErrorHandler();</span>
+<span class="fc" id="L88">        this.xmlParser.setErrorHandler(xsdErrorHandler);</span>
+<span class="fc" id="L89">    }</span>
 
     /**
      * Retrieves the file path of the XML data file from the environment properties.
      *
      * @return The path of the XML data file.
      */
-<span class="fc" id="L97">    Path getDataFilePath() { return Path.of(requireNonNull(this.env.getProperty(DATAFILE_PROPERTY))); }</span>
+<span class="fc" id="L96">    Path getDataFilePath() { return Path.of(requireNonNull(this.env.getProperty(DATAFILE_PROPERTY))); }</span>
 
     /**
      * Parses the given XML input stream into a Document.
@@ -104,7 +103,7 @@ public class XMLValidationTaskDao {
      * @throws XMLParseException if parsing fails.
      */
     Document parseXMLInput(InputStream inputStream) throws XMLParseException {
-<span class="fc" id="L107">        return parseInputOrThrow(this.xmlParser::parse, inputStream, logger, &quot;Failed to parse target XML content&quot;);</span>
+<span class="fc" id="L106">        return parseInputOrThrow(this.xmlParser::parse, inputStream, logger, &quot;Failed to parse target XML content&quot;);</span>
     }
 
     /**
@@ -117,16 +116,16 @@ public class XMLValidationTaskDao {
      */
     public synchronized void updateDataFile(MultipartFile file) throws IOException, NullPointerException, XMLParseException {
         try {
-<span class="fc" id="L120">            this.parseXMLInput(file.getInputStream());</span>
-<span class="fc" id="L121">            Files.write(this.getDataFilePath(), file.getBytes());</span>
-<span class="fc" id="L122">        } catch (NullPointerException | XMLParseException e) {</span>
-<span class="fc" id="L123">            logger.warn(&quot;Invalid EXTERNAL XML received from API&quot;);</span>
-<span class="fc" id="L124">            throw e;</span>
-<span class="fc" id="L125">        } catch (IOException e) {</span>
-<span class="fc" id="L126">            logger.error(&quot;Failed writing new datafile to disk&quot;, e);</span>
-<span class="fc" id="L127">            throw e;</span>
-<span class="fc" id="L128">        }</span>
-<span class="fc" id="L129">    }</span>
+<span class="fc" id="L119">            this.parseXMLInput(file.getInputStream());</span>
+<span class="fc" id="L120">            Files.write(this.getDataFilePath(), file.getBytes());</span>
+<span class="fc" id="L121">        } catch (NullPointerException | XMLParseException e) {</span>
+<span class="fc" id="L122">            logger.warn(&quot;Invalid EXTERNAL XML received from API&quot;);</span>
+<span class="fc" id="L123">            throw e;</span>
+<span class="fc" id="L124">        } catch (IOException e) {</span>
+<span class="fc" id="L125">            logger.error(&quot;Failed writing new datafile to disk&quot;, e);</span>
+<span class="fc" id="L126">            throw e;</span>
+<span class="fc" id="L127">        }</span>
+<span class="fc" id="L128">    }</span>
 
     /**
      * Retrieves the XML Document from the data file.
@@ -136,7 +135,7 @@ public class XMLValidationTaskDao {
      * @throws FileNotFoundException if the data file is not found.
      */
     synchronized Document getDocData() throws XMLParseException, FileNotFoundException {
-<span class="fc" id="L139">        return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));</span>
+<span class="fc" id="L138">        return this.parseXMLInput(new FileInputStream(this.getDataFilePath().toFile()));</span>
     }
 
     /**
@@ -146,37 +145,37 @@ public class XMLValidationTaskDao {
      * @throws XMLParseException if JSON content in the reqbody element cannot be parsed.
      */
     ValidationTask createVTaskFromNodes(NodeList validation) throws XMLParseException {
-<span class="fc" id="L149">        MethodType method = null;</span>
-<span class="fc" id="L150">        String url = null;</span>
-<span class="fc" id="L151">        List&lt;String&gt; headers = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L152">        JsonNode reqBody = this.mapper.nullNode();</span>
-<span class="fc" id="L153">        Integer resStatusCode = null;</span>
-<span class="fc" id="L154">        String resBody = null;</span>
+<span class="fc" id="L148">        MethodType method = null;</span>
+<span class="fc" id="L149">        String url = null;</span>
+<span class="fc" id="L150">        List&lt;String&gt; headers = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L151">        JsonNode reqBody = this.mapper.nullNode();</span>
+<span class="fc" id="L152">        Integer resStatusCode = null;</span>
+<span class="fc" id="L153">        String resBody = null;</span>
 
-<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (int j = 0; j &lt; validation.getLength(); j++) {</span>
-<span class="fc" id="L157">            Node childNode = validation.item(j);</span>
-<span class="fc" id="L158">            NamedNodeMap attrs = childNode.getAttributes();</span>
-<span class="fc" id="L159">            String name = childNode.getNodeName();</span>
-<span class="fc" id="L160">            String content = childNode.getTextContent().trim();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        for (int j = 0; j &lt; validation.getLength(); j++) {</span>
+<span class="fc" id="L156">            Node childNode = validation.item(j);</span>
+<span class="fc" id="L157">            NamedNodeMap attrs = childNode.getAttributes();</span>
+<span class="fc" id="L158">            String name = childNode.getNodeName();</span>
+<span class="fc" id="L159">            String content = childNode.getTextContent().trim();</span>
 
-<span class="fc bfc" id="L162" title="All 2 branches covered.">            if (URL_TAG.equals(name)) {</span>
-<span class="fc" id="L163">                int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());</span>
-<span class="fc" id="L164">                method = MethodType.values()[val];</span>
-<span class="fc" id="L165">                url = content;</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">            if (URL_TAG.equals(name)) {</span>
+<span class="fc" id="L162">                int val = Integer.parseInt(attrs.getNamedItem(REQ_METHOD_ATTR).getTextContent());</span>
+<span class="fc" id="L163">                method = MethodType.values()[val];</span>
+<span class="fc" id="L164">                url = content;</span>
             }
-<span class="fc bfc" id="L167" title="All 2 branches covered.">            if (HEADER_TAG.equals(name)) {</span>
-<span class="fc" id="L168">                headers.add(content);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">            if (HEADER_TAG.equals(name)) {</span>
+<span class="fc" id="L167">                headers.add(content);</span>
             }
-<span class="fc bfc" id="L170" title="All 2 branches covered.">            if (REQ_BODY_TAG.equals(name)) {</span>
-<span class="fc" id="L171">                reqBody = parseInputOrThrow(this.mapper::readTree, content, logger, &quot;Invalid JSON encountered in data file&quot;);</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">            if (REQ_BODY_TAG.equals(name)) {</span>
+<span class="fc" id="L170">                reqBody = parseInputOrThrow(this.mapper::readTree, content, logger, &quot;Invalid JSON encountered in data file&quot;);</span>
             }
-<span class="fc bfc" id="L173" title="All 2 branches covered.">            if (RES_TAG.equals(name)) {</span>
-<span class="fc" id="L174">                resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());</span>
-<span class="fc" id="L175">                resBody = content;</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">            if (RES_TAG.equals(name)) {</span>
+<span class="fc" id="L173">                resStatusCode = Integer.parseInt(attrs.getNamedItem(RES_SC_ATTR).getTextContent());</span>
+<span class="fc" id="L174">                resBody = content;</span>
             }
         }
 
-<span class="fc" id="L179">        return new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody);</span>
+<span class="fc" id="L178">        return new ValidationTask(method, url, headers, reqBody, resStatusCode, resBody);</span>
     }
 
     /**
@@ -188,18 +187,18 @@ public class XMLValidationTaskDao {
      * @throws FileNotFoundException if the data file is not found.
      */
     public List&lt;ValidationTask&gt; getAll() throws XMLParseException, FileNotFoundException {
-<span class="fc" id="L191">        long lastModifiedTime = (new File(this.getDataFilePath().toUri())).lastModified();</span>
-<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (lastModifiedTime &gt; this.lastModifiedTime) {</span>
-<span class="fc" id="L193">            List&lt;ValidationTask&gt; tasks = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L194">            NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);</span>
-<span class="fc bfc" id="L195" title="All 2 branches covered.">            for (int i = 0; i &lt; validations.getLength(); i++) {</span>
-<span class="fc" id="L196">                tasks.add(this.createVTaskFromNodes(validations.item(i).getChildNodes()));</span>
+<span class="fc" id="L190">        long lastModifiedTime = (new File(this.getDataFilePath().toUri())).lastModified();</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (lastModifiedTime &gt; this.lastModifiedTime) {</span>
+<span class="fc" id="L192">            List&lt;ValidationTask&gt; tasks = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L193">            NodeList validations = this.getDocData().getElementsByTagName(VALIDATION_TAG);</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">            for (int i = 0; i &lt; validations.getLength(); i++) {</span>
+<span class="fc" id="L195">                tasks.add(this.createVTaskFromNodes(validations.item(i).getChildNodes()));</span>
             }
-<span class="fc" id="L198">            this.tasks = tasks;</span>
-<span class="fc" id="L199">            this.lastModifiedTime = lastModifiedTime;</span>
+<span class="fc" id="L197">            this.tasks = tasks;</span>
+<span class="fc" id="L198">            this.lastModifiedTime = lastModifiedTime;</span>
         }
 
-<span class="fc" id="L202">        return this.tasks;</span>
+<span class="fc" id="L201">        return this.tasks;</span>
     }
 
     /**
@@ -208,8 +207,8 @@ public class XMLValidationTaskDao {
      * @return True if the data file exists and is readable, false otherwise.
      */
     public boolean isDataFileStatusOk() {
-<span class="fc" id="L211">        Path path = this.getDataFilePath();</span>
-<span class="fc bfc" id="L212" title="All 4 branches covered.">        return Files.isRegularFile(path) &amp;&amp; Files.isReadable(path);</span>
+<span class="fc" id="L210">        Path path = this.getDataFilePath();</span>
+<span class="fc bfc" id="L211" title="All 4 branches covered.">        return Files.isRegularFile(path) &amp;&amp; Files.isReadable(path);</span>
     }
 
     /**
@@ -217,14 +216,14 @@ public class XMLValidationTaskDao {
      *
      * @param xmlParser The XML parser to set.
      */
-<span class="fc" id="L220">    void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }</span>
+<span class="fc" id="L219">    void setXmlParser(DocumentBuilder xmlParser) { this.xmlParser = xmlParser; }</span>
 
     /**
      * Sets the logger; for testing purposes.
      *
      * @param logger The logger to set.
      */
-<span class="fc" id="L227">    void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }</span>
+<span class="fc" id="L226">    void setLogger(Logger logger) { XMLValidationTaskDao.logger = logger; }</span>
 
     /**
      * Sets the environment for the XMLValidationTaskDao.
@@ -233,20 +232,20 @@ public class XMLValidationTaskDao {
      *
      * @param env The environment to set.
      */
-<span class="fc" id="L236">    void setEnv(Environment env) { this.env = env; }</span>
+<span class="fc" id="L235">    void setEnv(Environment env) { this.env = env; }</span>
 
     /**
      * Sets the object mapper; for testing purposes.
      *
      * @param mapper The ObjectMapper to set.
      */
-<span class="fc" id="L243">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
+<span class="fc" id="L242">    void setObjectMapper(ObjectMapper mapper) { this.mapper = mapper; }</span>
 
     /**
      * Sets the lastModifiedTime of the data file; for testing purposes.
      *
      * @param time The new time to set.
      */
-<span class="fc" id="L250">    void setLastModifiedTime(long time) { this.lastModifiedTime = time; }</span>
+<span class="fc" id="L249">    void setLastModifiedTime(long time) { this.lastModifiedTime = time; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

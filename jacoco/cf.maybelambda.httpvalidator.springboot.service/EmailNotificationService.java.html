@@ -1,45 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailNotificationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">http-validator</a> &gt; <a href="index.source.html" class="el_package">cf.maybelambda.httpvalidator.springboot.service</a> &gt; <span class="el_source">EmailNotificationService.java</span></div><h1>EmailNotificationService.java</h1><pre class="source lang-java linenums">package cf.maybelambda.httpvalidator.springboot.service;
 
-import com.mailgun.api.v3.MailgunMessagesApi;
-import com.mailgun.client.MailgunClient;
-import com.mailgun.model.message.Message;
-import com.mailgun.model.message.MessageResponse;
-import feign.FeignException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Service;
+import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
+import static io.micrometer.common.util.StringUtils.isBlank;
+import static io.micrometer.common.util.StringUtils.truncate;
+import static java.util.Objects.isNull;
 
 import java.rmi.ConnectIOException;
 import java.util.List;
 
-import static cf.maybelambda.httpvalidator.springboot.util.HttpSendOutcomeWrapper.NET_ERR_CODE;
-import static io.micrometer.common.util.StringUtils.isBlank;
-import static io.micrometer.common.util.StringUtils.truncate;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
 /**
- * Service to send email notifications using external SMTP service.
+ * Service to send email notifications using an external SMTP service.
  */
 @Service
 public class EmailNotificationService {
     static final String BODY_LINE1 = &quot;Request URL: &quot;;
     static final String BODY_LINE2 = &quot;Response Status Code: &quot;;
     static final String BODY_LINE3 = &quot;Response body: &quot;;
-    static final String APIKEY_PROPERTY = &quot;mailer.apikey&quot;;
     static final String FROM_PROPERTY = &quot;notifications.from&quot;;
     static final String TO_PROPERTY = &quot;notifications.to&quot;;
-    private MailgunMessagesApi client;
-<span class="fc" id="L35">    private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);</span>
+
+    private JavaMailSender mailSender;
+<span class="fc" id="L33">    private static Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);</span>
 
     @Autowired
     private Environment env;
 
-<span class="fc" id="L40">    public EmailNotificationService(@Value(&quot;${&quot; + APIKEY_PROPERTY + &quot;}&quot;) String apiKey) {</span>
-<span class="fc" id="L41">        this.client = MailgunClient.config(apiKey).createApi(MailgunMessagesApi.class);</span>
-<span class="fc" id="L42">    }</span>
+    @Autowired
+<span class="fc" id="L39">    public EmailNotificationService(JavaMailSender mailSender) {</span>
+<span class="fc" id="L40">        this.mailSender = mailSender;</span>
+<span class="fc" id="L41">    }</span>
 
     /**
      * Builds the email body content from a list of validation results.
@@ -48,48 +47,48 @@ public class EmailNotificationService {
      * @return The email body as a single string.
      */
     String buildMailBody(List&lt;String[]&gt; contents) {
-<span class="fc" id="L51">        String res = &quot;&quot;;</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        for (String[] c : contents) {</span>
-<span class="fc" id="L53">            String p0 = BODY_LINE1 + c[0] + &quot;\n&quot;;</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">            if (String.valueOf(NET_ERR_CODE).equals(c[1])) {</span>
-<span class="fc" id="L55">                res += p0 + c[2];</span>
+<span class="fc" id="L50">        String res = &quot;&quot;;</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        for (String[] c : contents) {</span>
+<span class="fc" id="L52">            String p0 = BODY_LINE1 + c[0] + &quot;\n&quot;;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            if (String.valueOf(NET_ERR_CODE).equals(c[1])) {</span>
+<span class="fc" id="L54">                res += p0 + c[2];</span>
             } else {
-<span class="fc" id="L57">                String p1 = BODY_LINE2 + c[1] + &quot;\n&quot;;</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">                String p2 = BODY_LINE3 + (c[2] == null ? &quot;&quot; : truncate(c[2], 800, &quot;...&quot;));</span>
-<span class="fc" id="L59">                res += p0 + p1 + p2;</span>
+<span class="fc" id="L56">                String p1 = BODY_LINE2 + c[1] + &quot;\n&quot;;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">                String p2 = BODY_LINE3 + (c[2] == null ? &quot;&quot; : truncate(c[2], 800, &quot;...&quot;));</span>
+<span class="fc" id="L58">                res += p0 + p1 + p2;</span>
             }
-<span class="fc" id="L61">            res += &quot;\n\n\n&quot;;</span>
-<span class="fc" id="L62">        }</span>
+<span class="fc" id="L60">            res += &quot;\n\n\n&quot;;</span>
+<span class="fc" id="L61">        }</span>
 
-<span class="fc" id="L64">        return res;</span>
+<span class="fc" id="L63">        return res;</span>
     }
 
     /**
      * Sends a plain text email with the specified subject and body.
      *
      * @param subject The subject of the email.
-     * @param body The body content of the email.
+     * @param body    The body content of the email.
      * @throws ConnectIOException If an error occurs while sending the email.
      */
     void sendPlainTextEmail(String subject, String body) throws ConnectIOException {
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (!this.isValidConfig()) return;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (!this.isValidConfig())</span>
+<span class="fc" id="L75">            return;</span>
 
-<span class="fc" id="L77">        Message message = Message.builder()</span>
-<span class="fc" id="L78">            .from(this.getFrom())</span>
-<span class="fc" id="L79">            .to(this.getTo())</span>
-<span class="fc" id="L80">            .subject(subject)</span>
-<span class="fc" id="L81">            .text(body)</span>
-<span class="fc" id="L82">            .build();</span>
+<span class="fc" id="L77">        SimpleMailMessage message = new SimpleMailMessage();</span>
+<span class="fc" id="L78">        message.setFrom(this.getFrom());</span>
+<span class="fc" id="L79">        message.setTo(this.getTo());</span>
+<span class="fc" id="L80">        message.setSubject(subject);</span>
+<span class="fc" id="L81">        message.setText(body);</span>
 
         try {
-<span class="fc" id="L85">            MessageResponse res = this.client.sendMessage(this.getFrom().split(&quot;@&quot;)[1], message);</span>
-<span class="fc" id="L86">            logger.info(&quot;Email delivery result: &quot; + res.getMessage());</span>
-<span class="fc" id="L87">        } catch (FeignException e) {</span>
-<span class="fc" id="L88">            String errmsg = &quot;POST request for delivery of the Notification Email could not be completed.&quot;;</span>
-<span class="fc" id="L89">            logger.error(errmsg);</span>
-<span class="fc" id="L90">            throw new ConnectIOException(errmsg, e);</span>
-<span class="fc" id="L91">        }</span>
-<span class="fc" id="L92">    }</span>
+<span class="fc" id="L84">            this.mailSender.send(message);</span>
+<span class="fc" id="L85">            logger.info(&quot;Email delivery request submitted via SMTP.&quot;);</span>
+<span class="fc" id="L86">        } catch (MailException e) {</span>
+<span class="fc" id="L87">            String errmsg = &quot;Request for delivery of the Notification Email could not be completed via SMTP.&quot;;</span>
+<span class="fc" id="L88">            logger.error(errmsg);</span>
+<span class="fc" id="L89">            throw new ConnectIOException(errmsg, e);</span>
+<span class="fc" id="L90">        }</span>
+<span class="fc" id="L91">    }</span>
 
     /**
      * Sends a notification email with validation task failure results.
@@ -98,11 +97,11 @@ public class EmailNotificationService {
      * @throws ConnectIOException If an error occurs while sending the email.
      */
     public void sendVTaskErrorsNotification(@NonNull List&lt;String[]&gt; mailBody) throws ConnectIOException {
-<span class="fc" id="L101">        String subject = &quot;Notification of HTTP validation results&quot;;</span>
-<span class="fc" id="L102">        String body = this.buildMailBody(mailBody);</span>
+<span class="fc" id="L100">        String subject = &quot;Notification of HTTP validation results&quot;;</span>
+<span class="fc" id="L101">        String body = this.buildMailBody(mailBody);</span>
 
-<span class="fc" id="L104">        this.sendPlainTextEmail(subject, body);</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L103">        this.sendPlainTextEmail(subject, body);</span>
+<span class="fc" id="L104">    }</span>
 
     /**
      * Sends a notification email about application termination.
@@ -111,11 +110,11 @@ public class EmailNotificationService {
      * @throws ConnectIOException If an error occurs while sending the email.
      */
     public void sendAppTerminatedNotification(String endTime) throws ConnectIOException {
-<span class="fc" id="L114">        String subject = &quot;HTTP Validator app terminated&quot;;</span>
-<span class="fc" id="L115">        String body = String.format(&quot;ContextClosedEvent occurred on: %s.&quot;, endTime);</span>
+<span class="fc" id="L113">        String subject = &quot;HTTP Validator app terminated&quot;;</span>
+<span class="fc" id="L114">        String body = String.format(&quot;ContextClosedEvent occurred on: %s.&quot;, endTime);</span>
 
-<span class="fc" id="L117">        this.sendPlainTextEmail(subject, body);</span>
-<span class="fc" id="L118">    }</span>
+<span class="fc" id="L116">        this.sendPlainTextEmail(subject, body);</span>
+<span class="fc" id="L117">    }</span>
 
     /**
      * Checks if the email configuration is valid.
@@ -123,58 +122,56 @@ public class EmailNotificationService {
      * This method verifies that the necessary properties for sending emails
      * are properly configured in the environment. Specifically, it checks:
      * &lt;ul&gt;
-     *     &lt;li&gt;The &quot;notifications.from&quot; property, which should contain the sender's email address.&lt;/li&gt;
-     *     &lt;li&gt;The &quot;notifications.to&quot; property, which should contain the recipient's email address.&lt;/li&gt;
-     *     &lt;li&gt;The &quot;mailer.apikey&quot; property, which should contain the API key for authentication with SMTP service.&lt;/li&gt;
+     * &lt;li&gt;The &quot;notifications.from&quot; property, which should contain the sender's
+     * email address.&lt;/li&gt;
+     * &lt;li&gt;The &quot;notifications.to&quot; property, which should contain the recipient's
+     * email address.&lt;/li&gt;
+     * &lt;li&gt;The {@code mailSender} object, which must not be null.&lt;/li&gt;
      * &lt;/ul&gt;
-     * If any of these properties are blank or missing, the configuration is considered invalid.
+     * If any of these properties are blank or missing, the configuration is
+     * considered invalid.
      *
-     * @return True if all necessary properties are set and non-blank, false otherwise.
+     * @return True if all necessary properties are set and non-blank, false
+     *         otherwise.
      */
     public boolean isValidConfig() {
-<span class="fc bfc" id="L135" title="All 6 branches covered.">        return !(isBlank(this.getFrom()) || isBlank(this.getTo()) || isBlank(this.getApiKey()));</span>
+<span class="pc bpc" id="L138" title="1 of 6 branches missed.">        return !(isBlank(this.getFrom()) || isBlank(this.getTo()) || isNull(this.mailSender));</span>
     }
-
-    /**
-     * Gets the API key of the mailing service from the environment.
-     *
-     * @return The API key as a string.
-     */
-<span class="fc" id="L143">    private String getApiKey() { return this.env.getProperty(APIKEY_PROPERTY); }</span>
 
     /**
      * Gets the email address through which notifications are sent.
      *
      * @return The sender email address.
      */
-<span class="fc" id="L150">    String getFrom() { return this.env.getProperty(FROM_PROPERTY); }</span>
+    String getFrom() {
+<span class="fc" id="L147">        return this.env.getProperty(FROM_PROPERTY);</span>
+    }
 
     /**
      * Gets the email address to which notifications are sent.
      *
      * @return The recipient email address.
      */
-<span class="fc" id="L157">    String getTo() { return this.env.getProperty(TO_PROPERTY); }</span>
-
-    /**
-     * Sets the Mailer client; for testing purposes.
-     *
-     * @param cl The client to set.
-     */
-<span class="fc" id="L164">    void setClient(MailgunMessagesApi cl) { this.client = cl; }</span>
+    String getTo() {
+<span class="fc" id="L156">        return this.env.getProperty(TO_PROPERTY);</span>
+    }
 
     /**
      * Sets the logger; for testing purposes.
      *
      * @param logger The logger to set.
      */
-<span class="fc" id="L171">    void setLogger(Logger logger) { EmailNotificationService.logger = logger; }</span>
+    void setLogger(Logger logger) {
+<span class="fc" id="L165">        EmailNotificationService.logger = logger;</span>
+<span class="fc" id="L166">    }</span>
 
     /**
      * Sets the environment; for testing purposes.
      *
      * @param env The environment to set.
      */
-<span class="fc" id="L178">    void setEnv(Environment env) { this.env = env; }</span>
+    void setEnv(Environment env) {
+<span class="fc" id="L174">        this.env = env;</span>
+<span class="fc" id="L175">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

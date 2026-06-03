@@ -5,13 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXParseException;
 
-import javax.management.modelmbean.XMLParseException;
 
 /**
  * Custom error handler for XML schema validation errors. Also contains utility methods related to error handling.
  */
-<span class="fc" id="L13">public class XMLErrorHandler implements ErrorHandler {</span>
-<span class="fc" id="L14">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
+<span class="fc" id="L12">public class XMLErrorHandler implements ErrorHandler {</span>
+<span class="fc" id="L13">    private static Logger logger = LoggerFactory.getLogger(XMLErrorHandler.class);</span>
     private static final String logmsg = &quot;Warning during Schema Validation of the datafile&quot;;
 
     /**
@@ -49,10 +48,10 @@ import javax.management.modelmbean.XMLParseException;
      */
     static &lt;T, R&gt; R parseInputOrThrow(ThrowingFunction&lt;T, R&gt; f, T arg, Logger logger, String msg) throws XMLParseException {
         try {
-<span class="fc" id="L52">            return f.apply(arg);</span>
-<span class="fc" id="L53">        } catch (Exception e) {</span>
-<span class="fc" id="L54">            logger.error(msg, e);</span>
-<span class="fc" id="L55">            throw new XMLParseException(e, msg + &quot;\n&quot;);</span>
+<span class="fc" id="L51">            return f.apply(arg);</span>
+<span class="fc" id="L52">        } catch (Exception e) {</span>
+<span class="fc" id="L53">            logger.error(msg, e);</span>
+<span class="fc" id="L54">            throw new XMLParseException(e, msg + &quot;\n&quot;);</span>
         }
     }
 
@@ -64,8 +63,8 @@ import javax.management.modelmbean.XMLParseException;
      */
     @Override
     public void warning(SAXParseException e) {
-<span class="fc" id="L67">        logger.warn(logmsg, e);</span>
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L66">        logger.warn(logmsg, e);</span>
+<span class="fc" id="L67">    }</span>
 
     /**
      * Handles errors encountered during XML schema validation.
@@ -76,7 +75,7 @@ import javax.management.modelmbean.XMLParseException;
      */
     @Override
     public void error(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L79">        throw e;</span>
+<span class="fc" id="L78">        throw e;</span>
     }
 
     /**
@@ -88,7 +87,7 @@ import javax.management.modelmbean.XMLParseException;
      */
     @Override
     public void fatalError(SAXParseException e) throws SAXParseException {
-<span class="fc" id="L91">        throw e;</span>
+<span class="fc" id="L90">        throw e;</span>
     }
 
     /**
@@ -96,6 +95,6 @@ import javax.management.modelmbean.XMLParseException;
      *
      * @param logger The logger to be used.
      */
-<span class="fc" id="L99">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
+<span class="fc" id="L98">    void setLogger(Logger logger) { XMLErrorHandler.logger = logger; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

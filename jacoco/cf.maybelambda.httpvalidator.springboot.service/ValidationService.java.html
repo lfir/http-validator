@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.management.modelmbean.XMLParseException;
+import cf.maybelambda.httpvalidator.springboot.persistence.XMLParseException;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.http.HttpClient;
