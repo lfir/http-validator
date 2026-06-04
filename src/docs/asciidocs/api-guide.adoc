@@ -167,8 +167,9 @@ and place it in the same location as the **config** directory.
 
 ==== Environment variables that need to be set
 
-- **MAILER_APIKEY** - An API key from the mailing service with permission to send emails
-- **NOTIF_FROM** - Email address to be used as sender of the notifications
+- **SMTP_HOST** - Hostname of the SMTP server used for sending emails
+- **SMTP_PASS** - Password for SMTP authentication
+- **NOTIF_FROM** - Email address to be used as sender of the notifications (also used as username for SMTP authentication in the current setup, although by no means mandatory)
 - **NOTIF_TO** - Destination address for email notifications
 - **JWT_SECRET** - Encoded secret key for signing JWTs
 
